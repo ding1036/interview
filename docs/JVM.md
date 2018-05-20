@@ -132,7 +132,7 @@ Java程序一般会使用到以下三种系统提供的类加载器：
 
 # java内存区域
 ![](/img/java_memory.jpg)
-![](/img/java_memory2.jpg)
+![](/img/java_memory2.jpg)  
 [toTop](#jump)
 
 # 堆，栈，方法区存储内容
