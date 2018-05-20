@@ -26,5 +26,4 @@ POST：根据报文主题对指定资源做出处理，不安全，不幂等，�
 ## Java中private、protected、public和default的区别
 ![](/img/javaclass_type.png)
 
-# 集合
 
