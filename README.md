@@ -3,6 +3,7 @@
 * [java基础](docs/Java_basic.md)
 * [集合](docs/colloction.md)
 * [JVM](docs/JVM.md)
+* [排序算法](docs/sort_algorithm.md)
 
 ## 多线程
 
