@@ -270,4 +270,6 @@ private void flipColors(Node h){
 
 参考 2. [红黑树(五)之 Java的实现](https://www.cnblogs.com/skywang12345/p/3624343.html)
 
+[toTop](#jump)
+
 ---

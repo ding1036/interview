@@ -117,10 +117,10 @@ ctorSingleton(instance);    //为单例对象通过instance调用构造函数
 存储区的这个已经构造好的对象有压缩堆地址值COPY给主存储区的那个变量.这个过程对于其它线程,要么是resource
 为null,要么是完整的对象.绝对不会把一个已经分配空间却没有构造好的对象让其它线程可见.
 
-另一篇详细分析文章：
-[用happen-before规则重新审视DCL](http://www.iteye.com/topic/260515)
+参考1 : [用happen-before规则重新审视DCL](http://www.iteye.com/topic/260515)
 
-[关于double-check锁失效](http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html)
+参考2 : [关于double-check锁失效](http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html)
+
 ### 使用ThreadLocal修复双重检测
 借助于ThreadLocal，将临界资源（需要同步的资源）线程局部化，具体到本例就是将双重检测的第一层检测条件 if (instance == null) 转换为了线程局部范围内来作。这里的ThreadLocal也只是用作标示而已，用来标示每个线程是否已访问过，如果访问过，则不再需要走同步块，这样就提高了一定的效率。但是ThreadLocal在1.4以前的版本都较慢，但这与volatile相比却是安全的。
 
