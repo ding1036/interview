@@ -25,17 +25,22 @@
 * **Set**集合也可以存储null，但只能存储一个；
 * **HashMap**可以存储null键值对，键和值都可以是null，但如果添加的键值对的键相同，则后面添加的键值对会覆盖前面的键值对，即之后存储后添加的键值对；
 * **Hashtable**不能添加null，抛空指针    
+
 [toTop](#jump)
 
 # 是否有序
+
 ![](/img/collection_order.png)
-除了set不可重复，其余均可 map KEY也不可，value可以。除了list和tree有序，其余均无序。   
+
+除了set不可重复，其余均可 map KEY也不可，value可以。除了list和tree有序，其余均无序。
+
 [toTop](#jump)
 
 # ArrayList和LinkedList区别
 1) ArrayList是实现了基于动态数组的数据结构，LinkedList基于链表的数据结构。 
 2) 对于随机访问get和set，ArrayList觉得优于LinkedList，因为LinkedList要移动指针。 
 3) 对于新增和删除操作add和remove，LinedList比较占优势，因为ArrayList要移动数据。
+
 ## 时间复杂度 
 **ArrayList** 是线性表（数组）    
 **get()** 直接读取第几个下标，复杂度 O(1)    
@@ -48,6 +53,7 @@
 **add(E)** 添加到末尾，复杂度O(1)    
 **add(index, E)** 添加第几个元素后，需要先查找到第几个元素，直接指针指向操作，复杂度O(n)    
 **remove()** 删除元素，直接指针指向操作，复杂度O(1)      
+
 [toTop](#jump)
 
 # HashMap（重要）
@@ -56,9 +62,13 @@
 3) HashMap在底层将key-value当成一个整体进行处理，这个整体就是一个Node对象。HashMap底层采用一个Node[]数组来保存所有的key-value对，当需要存储一个Node对象时，会根据key的hash算法来决定其在数组中的存储位置，在根据equals方法决定其在该数组位置上的链表中的存储位置；当需要取出一个Node时，也会根据key的hash算法找到其在数组中的存储位置，再根据equals方法从该位置上的链表中取出该Node。
 4) HashMap进行数组扩容需要重新计算扩容后每个元素在数组中的位置，很耗性能
 5) 采用了Fail-Fast机制，通过一个modCount值记录修改次数，对HashMap内容的修改都将增加这个值。迭代器初始化过程中会将这个值赋给迭代器的expectedModCount，在迭代过程中，判断modCount跟expectedModCount是否相等，如果不相等就表示已经有其他线程修改了Map，马上抛出异常
-[深入Java集合学习系列：HashMap的实现原理](http://zhangshixi.iteye.com/blog/672697)
-[JDK1.8 HashMap源码分析](https://blog.csdn.net/lizhongkaide/article/details/50595719)
-[Java 8系列之重新认识HashMap](https://tech.meituan.com/java-hashmap.html)    
+
+参考1 : [深入Java集合学习系列：HashMap的实现原理](http://zhangshixi.iteye.com/blog/672697)
+
+参考2 : [JDK1.8 HashMap源码分析](https://blog.csdn.net/lizhongkaide/article/details/50595719)
+
+参考3 :[Java 8系列之重新认识HashMap](https://tech.meituan.com/java-hashmap.html)
+
 [toTop](#jump)
 
 # ConcurrentHashMap
@@ -68,8 +78,11 @@
 3) ConcurrentHashMap在底层将key-value当成一个整体进行处理，这个整体就是一个Entry对象。Hashtable底层采用一个Entry[]数组来保存所有的key-value对，当需要存储一个Entry对象时，会根据key的hash算法来决定其在数组中的存储位置，在根据equals方法决定其在该数组位置上的链表中的存储位置；当需要取出一个Entry时，也会根据key的hash算法找到其在数组中的存储位置，再根据equals方法从该位置上的链表中取出该Entry。
 4) 与HashMap不同的是，ConcurrentHashMap使用多个子Hash表，也就是段(Segment)
 5) ConcurrentHashMap完全允许多个读操作并发进行，读操作并不需要加锁。如果使用传统的技术，如HashMap中的实现，如果允许可以在hash链的中间添加或删除元素，读操作不加锁将得到不一致的数据。ConcurrentHashMap实现技术是保证HashEntry几乎是不可变的。
-[深入Java集合学习系列：Hashtable的实现原理](https://blog.csdn.net/zheng0518/article/details/42199477)
-[谈谈ConcurrentHashMap1.7和1.8的不同实现](http://www.importnew.com/23610.html)    
+
+参考1 : [深入Java集合学习系列：Hashtable的实现原理](https://blog.csdn.net/zheng0518/article/details/42199477)
+
+参考2 : [谈谈ConcurrentHashMap1.7和1.8的不同实现](http://www.importnew.com/23610.html)    
+
 [toTop](#jump)
 
 # ArrayList
@@ -78,8 +91,11 @@
 3) 该集合是可变长度数组，数组扩容时，会将老数组中的元素重新拷贝一份到新的数组中，每次数组容量增长大约是其容量的1.5倍，这种操作的代价很高。
 4) 采用了Fail-Fast机制，面对并发的修改时，迭代器很快就会完全失败，而不是冒着在将来某个不确定时间发生任意不确定行为的风险
 5) remove方法会让下标到数组末尾的元素向前移动一个单位，并把最后一位的值置空，方便GC
-[深入Java集合学习系列：ArrayList的实现原理](http://zhangshixi.iteye.com/blog/674856)
-[JDK1.8源码分析之ArrayList](https://www.cnblogs.com/leesf456/p/5308358.html)   
+
+参考1 : [深入Java集合学习系列：ArrayList的实现原理](http://zhangshixi.iteye.com/blog/674856)
+
+参考2 : [JDK1.8源码分析之ArrayList](https://www.cnblogs.com/leesf456/p/5308358.html)
+
 [toTop](#jump)
 
 # LinkedList
@@ -87,8 +103,11 @@
 2) 底层的数据结构是基于双向链表的，该数据结构我们称为节点
 3) 双向链表节点对应的类Node的实例，Node中包含成员变量：prev，next，item。其中，prev是该节点的上一个节点，next是该节点的下一个节点，item是该节点所包含的值。
 4) 它的查找是分两半查找，先判断index是在链表的哪一半，然后再去对应区域查找，这样最多只要遍历链表的一半节点即可找到
-[Java集合---LinkedList源码解析](http://www.cnblogs.com/ITtangtang/p/3948610.html)
-[JDK1.8源码分析之LinkedList](https://www.cnblogs.com/leesf456/p/5308843.html)     
+
+参考1 : [Java集合---LinkedList源码解析](http://www.cnblogs.com/ITtangtang/p/3948610.html)
+
+参考2 : [JDK1.8源码分析之LinkedList](https://www.cnblogs.com/leesf456/p/5308843.html)     
+
 [toTop](#jump)
 
 # Hashtable
@@ -97,36 +116,48 @@
 2) 底层使用数组实现，数组中每一项是个单链表，即数组和链表的结合体
 3) Hashtable在底层将key-value当成一个整体进行处理，这个整体就是一个Entry对象。Hashtable底层采用一个Entry[]数组来保存所有的key-value对，当需要存储一个Entry对象时，会根据key的hash算法来决定其在数组中的存储位置，在根据equals方法决定其在该数组位置上的链表中的存储位置；当需要取出一个Entry时，也会根据key的hash算法找到其在数组中的存储位置，再根据equals方法从该位置上的链表中取出该Entry。
 4) synchronized是针对整张Hash表的，即每次锁住整张表让线程独占
-[深入Java集合学习系列：Hashtable的实现原理](https://blog.csdn.net/zheng0518/article/details/42199477)  
+
+参考：[深入Java集合学习系列：Hashtable的实现原理](https://blog.csdn.net/zheng0518/article/details/42199477)  
+
 [toTop](#jump)
 
 # HashSet
 1) HashSet由哈希表(实际上是一个HashMap实例)支持，不保证set的迭代顺序，并允许使用null元素。
 2) 基于HashMap实现，API也是对HashMap的行为进行了封装，可参考HashMap
-[深入Java集合学习系列：HashSet的实现原理](http://zhangshixi.iteye.com/blog/673143)    
+
+参考： [深入Java集合学习系列：HashSet的实现原理](http://zhangshixi.iteye.com/blog/673143)
+
 [toTop](#jump)
 
 # LinkedHashMap
 1) LinkedHashMap继承于HashMap，底层使用哈希表和双向链表来保存所有元素，并且它是非同步，允许使用null值和null键。
 2) 基本操作与父类HashMap相似，通过重写HashMap相关方法，重新定义了数组中保存的元素Entry，来实现自己的链接列表特性。该Entry除了保存当前对象的引用外，还保存了其上一个元素before和下一个元素after的引用，从而构成了双向链接列表。
-[深入Java集合学习系列：LinkedHashMap的实现原理](http://zhangshixi.iteye.com/blog/673789)    
+
+参考：[深入Java集合学习系列：LinkedHashMap的实现原理](http://zhangshixi.iteye.com/blog/673789)    
+
 [toTop](#jump)
 
 # LinkedHashSet
 1) 对于LinkedHashSet而言，它继承与HashSet、又基于LinkedHashMap来实现的。LinkedHashSet底层使用LinkedHashMap来保存所有元素，它继承与HashSet，其所有的方法操作上又与HashSet相同。
-[深入Java集合学习系列：LinkedHashMap的实现原理](http://zhangshixi.iteye.com/blog/673789)    
+
+参考：[深入Java集合学习系列：LinkedHashMap的实现原理](http://zhangshixi.iteye.com/blog/673789)    
+
 [toTop](#jump)
 
 # 红黑树
+
 ## 红黑树的特性
 1) 每个节点或者是黑色，或者是红色。
 2) 根节点是黑色。
 3) 每个叶子节点是黑色。(注意：这里叶子节点，是指为空的叶子节点)
 4) 如果一个节点是红色的，则它的子节点必须是黑色的。
 5) 从一个节点到该节点的子孙节点的所有路径上包含相同数目的黑节点。
+
 ![](/img/redblacktree1.png)
+
 ## 数据结构
-```
+
+```java
 private static final boolean RED = true;
 private static final boolean BLACK = false;
 private Node root;//二叉查找树的根节点
@@ -173,9 +204,12 @@ private boolean isRed(Node x){
     return x.color == RED;
 }
 ```
+
 ## 红黑树的三个基本操作
+
 * 左旋
-```
+
+```java
 /**
  * 左旋转
  * @param h
@@ -196,8 +230,10 @@ private Node rotateLeft(Node h){
     return x;
 }
 ```
+
 * 右旋
-```
+
+```java
 /**
  * 右旋转
  * @param h
@@ -215,8 +251,10 @@ private Node rotateRight(Node h){
     return x;
 }
 ```
+
 * 颜色反转
-```
+
+```java
 /**
  * 颜色转换
  * @param h
@@ -227,7 +265,9 @@ private void flipColors(Node h){
     h.right.color = BLACK;//子结点颜色变黑
 }
 ```
-[最容易懂得红黑树](https://blog.csdn.net/sun_tttt/article/details/65445754)
-[红黑树(五)之 Java的实现](https://www.cnblogs.com/skywang12345/p/3624343.html)
 
+参考 1. [最容易懂得红黑树](https://blog.csdn.net/sun_tttt/article/details/65445754)
 
+参考 2. [红黑树(五)之 Java的实现](https://www.cnblogs.com/skywang12345/p/3624343.html)
+
+---
