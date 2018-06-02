@@ -4,6 +4,7 @@
 * [集合](docs/colloction.md)
 * [JVM](docs/JVM.md)
 * [排序算法](docs/sort_algorithm.md)
+* [设计模式](docs/design_pattern.md)
 
 ## 多线程
 
@@ -16,6 +17,8 @@
 
 ## 数据库
 * [数据库基础](docs/database.md)
-* [mabatis](docs/mabatis.md)
+* [mybatis](docs/mybatis.md)
 
 ## 中间件
+* [rabbitMq](docs/rabbitMq.md)
+* [redis](docs/redis.md)

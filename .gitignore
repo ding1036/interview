@@ -33,3 +33,9 @@ local.properties
 
 # Java
 *.class
+
+# VS code
+.vscode
+
+# python
+*.pyc

@@ -11,7 +11,7 @@
 <!-- /TOC -->
 
 # 8个基本类型
-byte boolean 1字节  
+byte boolean 1字节  -128~127（-2^8~2^8-1）1字节8位
 short char 2字节  
 int float 4字节  
 double long 8字节  
