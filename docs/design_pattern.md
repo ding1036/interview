@@ -21,6 +21,7 @@
 # 单例模式
 ## 饿汉式单例
 饿汉式在类创建的同时就已经创建好一个静态的对象供系统使用，以后不再改变，所以天生是线程安全的
+
 ```java
 //饿汉式单例类.在类初始化时，已经自行实例化   
 public class Singleton1 {  
@@ -32,7 +33,9 @@ public class Singleton1 {
     }  
 }  
 ```
+
 ## 懒汉式单例
+
 ```java
 //懒汉式单例类.在第一次调用的时候实例化自己   
 
@@ -48,8 +51,10 @@ public class Singleton {
     }  
 }  
 ```
+
 ## 静态内部类
 既实现了线程安全，又避免了同步带来的性能影响
+
 ```java
 public class Singleton {    
     private static class LazyHolder {    
@@ -61,8 +66,10 @@ public class Singleton {
     }    
 }    
 ```
+
 ## 双重检测同步延迟加载
 为处理原版非延迟加载方式瓶颈问题，我们需要对 instance 进行第二次检查，目的是避开过多的同步（因为这里的同步只需在第一次创建实例时才同步，一旦创建成功，以后获取实例时就不需要同获取锁了），但在Java中行不通，因为同步块外面的if (instance == null)可能看到已存在，但不完整的实例。JDK5.0以后版本若instance为volatile则可行
+
 ```java
 public class Singleton {  
  private volatile static Singleton instance = null;  
@@ -79,6 +86,7 @@ public class Singleton {
  }  
 }  
 ```
+
 双重检测锁定失败的问题并不归咎于 JVM 中的实现 bug，而是归咎于 Java 平台内存模型。内存模型允许所谓的“无序写入”，这也是失败的一个主要原因。
 * 无序写入
 为解释该问题，需要重新考察上述清单中的 //3 行。此行代码创建了一个 Singleton 对象并初始化变量 instance 来引用此对象。这行代码的问题是：在 Singleton 构造函数体执行之前，变量 instance 可能成为非 null 的，即赋值语句在对象实例化之前调用，此时别的线程得到的是一个还会初始化的对象，这样会导致系统崩溃。
@@ -93,11 +101,13 @@ public class Singleton {
 7) 线程 1 通过运行 Singleton 对象的构造函数并将引用返回给它，来完成对该对象的初始化。
 
 为展示此事件的发生情况，假设代码行 instance =new Singleton(); 执行了下列伪代码：
-```
+
+```java
 mem = allocate();             //为单例对象分配内存空间.
 instance = mem;               //注意，instance 引用现在是非空，但还未初始化
 ctorSingleton(instance);    //为单例对象通过instance调用构造函数
 ```
+
 这段伪代码不仅是可能的，而且是一些 JIT 编译器上真实发生的。执行的顺序是颠倒的，但鉴于当前的内存模型，这也是允许发生的。JIT 编译器的这一行为使双重检查锁定的问题只不过是一次学术实践而已。
 确实,在JAVA2(以jdk1.2开始)以前对于实例字段是直接在主储区读写的.所以当一个线程对resource进行分配空间,
 初始化和调用构造方法时,可能在其它线程中分配空间动作可见了,而初始化和调用构造方法还没有完成.
@@ -107,10 +117,13 @@ ctorSingleton(instance);    //为单例对象通过instance调用构造函数
 存储区的这个已经构造好的对象有压缩堆地址值COPY给主存储区的那个变量.这个过程对于其它线程,要么是resource
 为null,要么是完整的对象.绝对不会把一个已经分配空间却没有构造好的对象让其它线程可见.
 
-另一篇详细分析文章：[用happen-before规则重新审视DCL](http://www.iteye.com/topic/260515)
+另一篇详细分析文章：
+[用happen-before规则重新审视DCL](http://www.iteye.com/topic/260515)
+
 [关于double-check锁失效](http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html)
 ### 使用ThreadLocal修复双重检测
 借助于ThreadLocal，将临界资源（需要同步的资源）线程局部化，具体到本例就是将双重检测的第一层检测条件 if (instance == null) 转换为了线程局部范围内来作。这里的ThreadLocal也只是用作标示而已，用来标示每个线程是否已访问过，如果访问过，则不再需要走同步块，这样就提高了一定的效率。但是ThreadLocal在1.4以前的版本都较慢，但这与volatile相比却是安全的。
+
 ```java
 public class Singleton {  
  private static final ThreadLocal perThreadInstance = new ThreadLocal();  
@@ -135,6 +148,7 @@ public class Singleton {
  }  
 }  
 ```    
+
 [toTop](#jump)
 
 # 适配器模式
@@ -144,6 +158,7 @@ public class Singleton {
 当我们要访问的接口A中没有我们想要的方法 ，却在另一个接口B中发现了合适的方法，我们又不能改变访问接口A，在这种情况下，我们可以定义一个适配器p来进行中转，这个适配器p要实现我们访问的接口A，这样我们就能继续访问当前接口A中的方法（虽然它目前不是我们的菜），然后再继承接口B的实现类BB，这样我们可以在适配器P中访问接口B的方法了，这时我们在适配器P中的接口A方法中直接引用BB中的合适方法，这样就完成了一个简单的类适配器。
 详见下方实例：我们以ps2与usb的转接为例
 * ps2接口：Ps2
+
 ```java
 public interface Ps2 {
      void isPs2();
@@ -151,6 +166,7 @@ public interface Ps2 {
 ```
 
 * USB接口：Usb
+
 ```java
 public interface Usb {
      void isUsb();
@@ -158,6 +174,7 @@ public interface Usb {
 ```
 
 * USB接口实现类：Usber
+
 ```java
 public class Usber implements Usb {
 
@@ -170,6 +187,7 @@ public class Usber implements Usb {
 ```
 
 * 适配器：Adapter
+
 ```java
 public class Adapter extends Usber implements Ps2 {
 
@@ -182,6 +200,7 @@ public class Adapter extends Usber implements Ps2 {
 ```
 
 * 测试方法：Clienter
+
 ```java
 public class Clienter {
 
@@ -192,10 +211,12 @@ public class Clienter {
 
 }
 ```
+
 ## 对象适配器模式
 当我们要访问的接口A中没有我们想要的方法 ，却在另一个接口B中发现了合适的方法，我们又不能改变访问接口A，在这种情况下，我们可以定义一个适配器p来进行中转，这个适配器p要实现我们访问的接口A，这样我们就能继续访问当前接口A中的方法（虽然它目前不是我们的菜），然后在适配器P中定义私有变量C（对象）（B接口指向变量名），再定义一个带参数的构造器用来为对象C赋值，再在A接口的方法实现中使用对象C调用其来源于B接口的方法。
 详见下方实例：我们仍然以ps2与usb的转接为例
 * ps2接口：Ps2
+
 ```java
 public interface Ps2 {
      void isPs2();
@@ -210,6 +231,7 @@ public interface Usb {
 ```
 
 * USB接口实现类：Usber
+
 ```java
 public class Usber implements Usb {
 
@@ -222,6 +244,7 @@ public class Usber implements Usb {
 ```
 
 * 适配器：Adapter
+
 ```java
 public class Adapter implements Ps2 {
     
@@ -238,6 +261,7 @@ public class Adapter implements Ps2 {
 ```
 
 测试类：Clienter
+
 ```java
 public class Clienter {
 
@@ -248,9 +272,11 @@ public class Clienter {
 
 }
 ```
+
 ## 接口适配器模式
 当存在这样一个接口，其中定义了N多的方法，而我们现在却只想使用其中的一个到几个方法，如果我们直接实现接口，那么我们要对所有的方法进行实现，哪怕我们仅仅是对不需要的方法进行置空（只写一对大括号，不做具体方法实现）也会导致这个类变得臃肿，调用也不方便，这时我们可以使用一个抽象类作为中间件，即适配器，用这个抽象类实现接口，而在抽象类中所有的方法都进行置空，那么我们在创建抽象类的继承类，而且重写我们需要使用的那几个方法即可。
 * 目标接口：A
+
 ```java
 public interface A {
     void a();
@@ -263,6 +289,7 @@ public interface A {
 ```
 
 * 适配器：Adapter
+
 ```java
 public abstract class Adapter implements A {
     public void a(){}
@@ -275,6 +302,7 @@ public abstract class Adapter implements A {
 ```
 
 * 实现类：Ashili
+
 ```java
 public class Ashili extends Adapter {
     public void a(){
@@ -287,6 +315,7 @@ public class Ashili extends Adapter {
 ```
 
 * 测试类：Clienter
+
 ```java
 public class Clienter {
 
@@ -311,6 +340,7 @@ public class Clienter {
 
 # 建造者模式（Builder）
 在了解之前，先假设有一个问题，我们需要创建一个学生对象，属性有name,number,class,sex,age,school等属性，如果每一个属性都可以为空，也就是说我们可以只用一个name,也可以用一个school,name,或者一个class,number，或者其他任意的赋值来创建一个学生对象，这时该怎么构造？
+
 ```java
 public class Builder {
 
@@ -372,6 +402,7 @@ public class Builder {
     }
 }
 ```   
+
 [toTop](#jump)
 
 # 装饰者模式
@@ -386,6 +417,7 @@ public class Builder {
 某客户点了 浓缩咖啡加摩卡加牛奶的组合
 
 首先是饮料类的抽象类
+
 ```java
 //饮料的抽象类  
 public abstract class Beverage {  
@@ -400,6 +432,7 @@ public abstract class Beverage {
 ```  
 
 调料类的抽象类
+
 ```java
 //调料类，也是装饰者类  
 public abstract class CondimentDecorrator {  
@@ -411,6 +444,7 @@ public abstract class CondimentDecorrator {
 ```
 
 浓缩咖啡类
+
 ```java
 //浓缩咖啡的饮料类的实现  
 public class Espresso extends Beverage {  
@@ -425,6 +459,7 @@ public class Espresso extends Beverage {
 ```
 
 摩卡类
+
 ```java
 public class Moka extends CondimentDecorrator {  
     Beverage beverage;  
@@ -445,6 +480,7 @@ public class Moka extends CondimentDecorrator {
 ```
 
 牛奶类
+
 ```java
 public class Milk extends CondimentDecorrator {  
     Beverage beverage;  
@@ -462,6 +498,7 @@ public class Milk extends CondimentDecorrator {
 ```
 
 测试类
+
 ```java
 public class Test3 {  
   
@@ -476,6 +513,7 @@ public class Test3 {
     }  
 }  
 ```
+
 [toTop](#jump)
 
 # 工厂模式
