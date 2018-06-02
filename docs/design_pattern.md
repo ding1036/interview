@@ -14,13 +14,14 @@
     - [配器模式应用场景](#配器模式应用场景)
 - [建造者模式（Builder）](#建造者模式builder)
 - [装饰者模式](#装饰者模式)
+- [工厂模式](#工厂模式)
 
 <!-- /TOC -->
 
 # 单例模式
 ## 饿汉式单例
 饿汉式在类创建的同时就已经创建好一个静态的对象供系统使用，以后不再改变，所以天生是线程安全的
-```
+```java
 //饿汉式单例类.在类初始化时，已经自行实例化   
 public class Singleton1 {  
     private Singleton1() {}  
@@ -32,7 +33,7 @@ public class Singleton1 {
 }  
 ```
 ## 懒汉式单例
-```
+```java
 //懒汉式单例类.在第一次调用的时候实例化自己   
 
 public class Singleton {  
@@ -49,7 +50,7 @@ public class Singleton {
 ```
 ## 静态内部类
 既实现了线程安全，又避免了同步带来的性能影响
-```
+```java
 public class Singleton {    
     private static class LazyHolder {    
        private static final Singleton INSTANCE = new Singleton();    
@@ -62,7 +63,7 @@ public class Singleton {
 ```
 ## 双重检测同步延迟加载
 为处理原版非延迟加载方式瓶颈问题，我们需要对 instance 进行第二次检查，目的是避开过多的同步（因为这里的同步只需在第一次创建实例时才同步，一旦创建成功，以后获取实例时就不需要同获取锁了），但在Java中行不通，因为同步块外面的if (instance == null)可能看到已存在，但不完整的实例。JDK5.0以后版本若instance为volatile则可行
-```
+```java
 public class Singleton {  
  private volatile static Singleton instance = null;  
  private Singleton() {}  
@@ -110,7 +111,7 @@ ctorSingleton(instance);    //为单例对象通过instance调用构造函数
 [关于double-check锁失效](http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html)
 ### 使用ThreadLocal修复双重检测
 借助于ThreadLocal，将临界资源（需要同步的资源）线程局部化，具体到本例就是将双重检测的第一层检测条件 if (instance == null) 转换为了线程局部范围内来作。这里的ThreadLocal也只是用作标示而已，用来标示每个线程是否已访问过，如果访问过，则不再需要走同步块，这样就提高了一定的效率。但是ThreadLocal在1.4以前的版本都较慢，但这与volatile相比却是安全的。
-```
+```java
 public class Singleton {  
  private static final ThreadLocal perThreadInstance = new ThreadLocal();  
  private static Singleton singleton ;  
@@ -143,19 +144,21 @@ public class Singleton {
 当我们要访问的接口A中没有我们想要的方法 ，却在另一个接口B中发现了合适的方法，我们又不能改变访问接口A，在这种情况下，我们可以定义一个适配器p来进行中转，这个适配器p要实现我们访问的接口A，这样我们就能继续访问当前接口A中的方法（虽然它目前不是我们的菜），然后再继承接口B的实现类BB，这样我们可以在适配器P中访问接口B的方法了，这时我们在适配器P中的接口A方法中直接引用BB中的合适方法，这样就完成了一个简单的类适配器。
 详见下方实例：我们以ps2与usb的转接为例
 * ps2接口：Ps2
-```
+```java
 public interface Ps2 {
      void isPs2();
 }
 ```
+
 * USB接口：Usb
-```
+```java
 public interface Usb {
      void isUsb();
 }
 ```
+
 * USB接口实现类：Usber
-```
+```java
 public class Usber implements Usb {
 
     @Override
@@ -165,8 +168,9 @@ public class Usber implements Usb {
 
 }
 ```
+
 * 适配器：Adapter
-```
+```java
 public class Adapter extends Usber implements Ps2 {
 
     @Override
@@ -176,8 +180,9 @@ public class Adapter extends Usber implements Ps2 {
 
 }
 ```
+
 * 测试方法：Clienter
-```
+```java
 public class Clienter {
 
     public static void main(String[] args) {
@@ -191,19 +196,21 @@ public class Clienter {
 当我们要访问的接口A中没有我们想要的方法 ，却在另一个接口B中发现了合适的方法，我们又不能改变访问接口A，在这种情况下，我们可以定义一个适配器p来进行中转，这个适配器p要实现我们访问的接口A，这样我们就能继续访问当前接口A中的方法（虽然它目前不是我们的菜），然后在适配器P中定义私有变量C（对象）（B接口指向变量名），再定义一个带参数的构造器用来为对象C赋值，再在A接口的方法实现中使用对象C调用其来源于B接口的方法。
 详见下方实例：我们仍然以ps2与usb的转接为例
 * ps2接口：Ps2
-```
+```java
 public interface Ps2 {
      void isPs2();
 }
 ```
+
 * USB接口：Usb
-```
+```java
 public interface Usb {
      void isUsb();
 }
 ```
+
 * USB接口实现类：Usber
-```
+```java
 public class Usber implements Usb {
 
     @Override
@@ -213,8 +220,9 @@ public class Usber implements Usb {
 
 }
 ```
+
 * 适配器：Adapter
-```
+```java
 public class Adapter implements Ps2 {
     
     private Usb usb;
@@ -228,8 +236,9 @@ public class Adapter implements Ps2 {
 
 }
 ```
+
 测试类：Clienter
-```
+```java
 public class Clienter {
 
     public static void main(String[] args) {
@@ -242,7 +251,7 @@ public class Clienter {
 ## 接口适配器模式
 当存在这样一个接口，其中定义了N多的方法，而我们现在却只想使用其中的一个到几个方法，如果我们直接实现接口，那么我们要对所有的方法进行实现，哪怕我们仅仅是对不需要的方法进行置空（只写一对大括号，不做具体方法实现）也会导致这个类变得臃肿，调用也不方便，这时我们可以使用一个抽象类作为中间件，即适配器，用这个抽象类实现接口，而在抽象类中所有的方法都进行置空，那么我们在创建抽象类的继承类，而且重写我们需要使用的那几个方法即可。
 * 目标接口：A
-```
+```java
 public interface A {
     void a();
     void b();
@@ -252,8 +261,9 @@ public interface A {
     void f();
 }
 ```
+
 * 适配器：Adapter
-```
+```java
 public abstract class Adapter implements A {
     public void a(){}
     public void b(){}
@@ -263,8 +273,9 @@ public abstract class Adapter implements A {
     public void f(){}
 }
 ```
+
 * 实现类：Ashili
-```
+```java
 public class Ashili extends Adapter {
     public void a(){
         System.out.println("实现A方法被调用");
@@ -274,8 +285,9 @@ public class Ashili extends Adapter {
     }
 }
 ```
+
 * 测试类：Clienter
-```
+```java
 public class Clienter {
 
     public static void main(String[] args) {
@@ -286,18 +298,20 @@ public class Clienter {
 
 }
 ```
+
 ## 配器模式应用场景
 类适配器与对象适配器的使用场景一致，仅仅是实现手段稍有区别，二者主要用于如下场景：
 1) 想要使用一个已经存在的类，但是它却不符合现有的接口规范，导致无法直接去访问，这时创建一个适配器就能间接去访问这个类中的方法。
 2) 我们有一个类，想将其设计为可重用的类（可被多处访问），我们可以创建适配器来将这个类来适配其他没有提供合适接口的类。
 以上两个场景其实就是从两个角度来描述一类问题，那就是要访问的方法不在合适的接口里，一个从接口出发（被访问），一个从访问出发（主动访问）。
 接口适配器使用场景：
-    1) 想要使用接口中的某个或某些方法，但是接口中有太多方法，我们要使用时必须实现接口并实现其中的所有方法，可以使用抽象类来实现接口，并不对方法进行实现（仅置空），然后我们再继承这个抽象类来通过重写想用的方法的方式来实现。这个抽象类就是适配器。   
+    1) 想要使用接口中的某个或某些方法，但是接口中有太多方法，我们要使用时必须实现接口并实现其中的所有方法，可以使用抽象类来实现接口，并不对方法进行实现（仅置空），然后我们再继承这个抽象类来通过重写想用的方法的方式来实现。这个抽象类就是适配器。 
+      
 [toTop](#jump)
 
 # 建造者模式（Builder）
 在了解之前，先假设有一个问题，我们需要创建一个学生对象，属性有name,number,class,sex,age,school等属性，如果每一个属性都可以为空，也就是说我们可以只用一个name,也可以用一个school,name,或者一个class,number，或者其他任意的赋值来创建一个学生对象，这时该怎么构造？
-```
+```java
 public class Builder {
 
     static class Student{
@@ -372,7 +386,7 @@ public class Builder {
 某客户点了 浓缩咖啡加摩卡加牛奶的组合
 
 首先是饮料类的抽象类
-```
+```java
 //饮料的抽象类  
 public abstract class Beverage {  
     String description = "Unknown Beverage";  
@@ -384,8 +398,9 @@ public abstract class Beverage {
     public abstract double cost();  
 }  
 ```  
+
 调料类的抽象类
-```
+```java
 //调料类，也是装饰者类  
 public abstract class CondimentDecorrator {  
     //这里要重写getDescribtion的原因  
@@ -394,8 +409,9 @@ public abstract class CondimentDecorrator {
     public abstract String getDescribtion();  
 }  
 ```
+
 浓缩咖啡类
-```
+```java
 //浓缩咖啡的饮料类的实现  
 public class Espresso extends Beverage {  
     public Espresso() {  
@@ -407,8 +423,9 @@ public class Espresso extends Beverage {
     }  
 }  
 ```
+
 摩卡类
-```
+```java
 public class Moka extends CondimentDecorrator {  
     Beverage beverage;  
   
@@ -426,8 +443,9 @@ public class Moka extends CondimentDecorrator {
     }  
 }  
 ```
+
 牛奶类
-```
+```java
 public class Milk extends CondimentDecorrator {  
     Beverage beverage;  
     public Milk(Beverage beverage) {  
@@ -442,8 +460,9 @@ public class Milk extends CondimentDecorrator {
     }  
 }  
 ```
+
 测试类
-```
+```java
 public class Test3 {  
   
     public static void main(String[] args) {  
