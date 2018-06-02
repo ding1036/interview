@@ -14,7 +14,9 @@
     - [配器模式应用场景](#配器模式应用场景)
 - [建造者模式（Builder）](#建造者模式builder)
 - [装饰者模式](#装饰者模式)
-- [工厂模式](#工厂模式)
+- [代理模式](#代理模式)
+    - [静态代理](#静态代理)
+    - [动态代理](#动态代理)
 
 <!-- /TOC -->
 
@@ -516,4 +518,131 @@ public class Test3 {
 
 [toTop](#jump)
 
-# 工厂模式
+# 代理模式
+代理模式的定义：代理模式给某一个对象提供一个代理对象，并由代理对象控制对原对象的引用。举例说明，就是一个人或者一个机构代表另一个人或者另一个机构采取行动。在一些情况下，一个客户不想或者不能够直接引用一个对象，而代理对象可以在客户端和目标对象之前起到中介的作用。
+
+## 静态代理
+静态代理通常用于对原有业务逻辑的扩充。比如持有二方包的某个类，并调用了其中的某些方法。然后出于某种原因，比如记录日志、打印方法执行时间，但是又不好将这些逻辑写入二方包的方法里。所以可以创建一个代理类实现和二方方法相同的方法，通过让代理类持有真实对象，然后在原代码中调用代理类方法，来达到添加我们需要业务逻辑的目的。
+这其实也就是代理模式的一种实现，通过对真实对象的封装，来实现扩展性。
+
+* 共同接口
+
+```java
+public interface Action {
+    public void doSomething();
+}
+```
+
+* 真实对象
+
+```java
+public class RealObject implements Action{
+
+    public void doSomething() {
+        System.out.println("do something");
+    }
+}
+```
+
+* 代理对象
+
+```java
+public class Proxy implements Action {
+    private Action realObject;
+
+    public Proxy(Action realObject) {
+        this.realObject = realObject;
+    }
+    public void doSomething() {
+        System.out.println("proxy do");
+        realObject.doSomething();
+    }
+}
+```
+
+* 运行代码
+
+```java
+Proxy proxy = new Proxy(new RealObject());
+    proxy.doSomething();
+```
+
+![](/img/design_pattern_static_proxy.png)
+
+* 静态代理的优点和缺点
+优点： 扩展原功能，不侵入原代码。
+缺点： 重复创建多个逻辑相同，仅仅RealObject引用不同的Proxy，会导致proxy的膨胀，而且这种膨胀往往是无意义的。
+
+## 动态代理
+
+使用动态代理，需要将要扩展的功能写在一个InvocationHandler 实现类里
+
+```java
+public class DynamicProxyHandler implements InvocationHandler {
+    private Object realObject;
+
+    public DynamicProxyHandler(Object realObject) {
+        this.realObject = realObject;
+    }
+
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        //代理扩展逻辑
+        System.out.println("proxy do");
+
+        return method.invoke(realObject, args);
+    }
+}
+```
+
+这个Handler中的invoke方法中实现了代理类要扩展的公共功能。
+
+到这里，需要先看一下这个handler的用法：
+
+```java
+public static void main(String[] args) {
+        RealObject realObject = new RealObject();
+        Action proxy = (Action) Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(), new Class[]{Action.class}, new DynamicProxyHandler(realObject));
+        proxy.doSomething();
+}
+```
+
+Proxy.newProxyInstance 传入的是一个ClassLoader， 一个代理接口，和我们定义的handler，返回的是一个Proxy的实例。
+
+动态生成Proxy核心入口就在newProxyInstance方法
+
+```java
+private static final Class<?>[] constructorParams =
+        { InvocationHandler.class };
+
+public static Object newProxyInstance(ClassLoader loader,
+                                          Class<?>[] interfaces,
+                                          InvocationHandler h)
+        throws IllegalArgumentException
+{
+    Class<?> cl = getProxyClass0(loader, intfs);
+    ...
+    final Constructor<?> cons = cl.getConstructor(constructorParams);
+
+    if (!Modifier.isPublic(cl.getModifiers())) {
+        AccessController.doPrivileged(new PrivilegedAction<Void>() {
+            public Void run() {
+            cons.setAccessible(true);
+            return null;
+        }
+        });
+    }
+return cons.newInstance(new Object[]{h});
+}
+```
+整体流程就是：
+
+1) 生成代理类Proxy的Class对象。
+
+2) 如果Class作用域为私有，通过 setAccessible 支持访问
+
+3) 获取Proxy Class构造函数，创建Proxy代理实例。
+
+参考 : [静态代理和动态代理的理解](https://blog.csdn.net/wangqyoho/article/details/77584832)
+
+[toTop](#jump)
+
