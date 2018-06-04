@@ -21,11 +21,15 @@
 
 参考 : [Redis 分布式锁的正确实现方式](http://www.importnew.com/27477.html)
 
+参考2 : [基于Redis的分布式锁到底安全吗](http://zhangtielei.com/posts/blog-redlock-reasoning.html)
+
 [toTop](#jump)
 
 # redis的主从切换的两种方式
 
 参考 : [redis的主从切换的两种方式](https://blog.csdn.net/u013516966/article/details/50633925)
+
+参考2 : [Redis 复制功能详解](https://blog.csdn.net/men_wen/article/details/72590550)
 
 [toTop](#jump)
 
