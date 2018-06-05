@@ -297,8 +297,11 @@ AOF 的缺点:
 CPU不是Redis的瓶颈。Redis的瓶颈最有可能是机器内存或者网络带宽。
 redis用单线程也不是没有问题。有一个很明显的问题就是。当进行一些复杂的集合操作的时候会使redis并发性下降。 
 解决办法是：你可以在一个多核的机器上部署多个redis实例。组成master-master，master-slave的形式，实现读写分离。耗时的读命令完全可以放到slave中。
+
 参考 : [redis为什么要设计成单线程](https://www.zybuluo.com/Toby-wei/note/466127)
+
 参考 : [Redis为什么是单线程](https://blog.csdn.net/qqqqq1993qqqqq/article/details/77538202)
+
 [toTop](#jump)
 
 
