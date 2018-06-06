@@ -9,6 +9,7 @@
 ## 多线程
 
 * [多线程](docs/muti-thread.md)
+* [锁](docs/lock.md)
 
 ## Spring
 

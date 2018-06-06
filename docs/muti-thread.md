@@ -9,6 +9,11 @@
     - [CyclicBarrier](#cyclicbarrier)
     - [Semaphore](#semaphore)
     - [Exchange](#exchange)
+- [线程状态](#线程状态)
+- [实现线程的三种方式](#实现线程的三种方式)
+    - [继承thread类](#继承thread类)
+    - [实现runnable 接口](#实现runnable-接口)
+    - [实现callable 接口](#实现callable-接口)
 
 <!-- /TOC -->
 
@@ -407,5 +412,116 @@ public class ExchangeTest {
 线程 pool-1-thread-2交换回来的数据是: 零食
 ```
 
+[toTop](#jump)
+
+
+# 线程状态
+
+1) 新建状态：新建线程对象，并没有调用start()方法之前
+2) 就绪状态：调用start()方法之后线程就进入就绪状态，但是并不是说只要调用start()方法线程就马上变为当前线程，在变为当前线程之前都是为就绪状态。值得一提的是，线程在睡眠和挂起中恢复的时候也会进入就绪状态哦。
+3) 运行状态：线程被设置为当前线程，开始执行run()方法。就是线程进入运行状态
+4) 阻塞状态：线程被暂停，比如说调用sleep()方法后线程就进入阻塞状态
+5) 死亡状态：线程执行结束
+
+![](/img/thread_status.jpg)
 
 [toTop](#jump)
+
+# 实现线程的三种方式
+
+## 继承thread类
+
+```java
+public class MyThread extends Thread {
+    private int i;
+
+    @Override
+    public void run() {
+       for (; i < 10; i++) {
+         System.out.println(getName()+"\t"+i);
+    }
+    }
+}
+
+public class ThreadTest {
+    public static void main(String[] args) {
+        for (int i = 0; i <10; i++) {
+             System.out.println(Thread.currentThread().getName()+"\t"+i+"======");
+             if(i==5){
+                 
+                 MyThread mt2 =new MyThread();
+                 MyThread mt =new MyThread();
+                 mt2.start();
+                 mt.start();
+             }
+        }
+    }
+```
+
+## 实现runnable 接口
+
+```java
+public class SecondThread implements Runnable{
+    private int i;
+    public void run() {
+        for (; i < 20; i++) {
+            System.out.println(Thread.currentThread().getName()+" "+i);
+            if(i==20)
+            {
+                System.out.println(Thread.currentThread().getName()+"执行完毕");
+            }
+        }
+    }
+}
+
+
+public class RunnableTest {
+    public static void main(String[] args) {
+        for (int i = 0; i < 10; i++) {
+            System.out.println(Thread.currentThread().getName()+" "+i);
+            if(i==5)
+            {
+                SecondThread s1=new SecondThread();
+                Thread t1=new Thread(s1,"线程1");
+                Thread t2=new Thread(s1,"线程2");
+                t1.start();
+                t2.start();
+               
+            }
+        }
+    }
+}
+```
+
+## 实现callable 接口
+
+```java
+public class Target implements Callable<Integer> {
+    int i=0;
+    public Integer call() throws Exception {
+        for (; i < 20; i++) {
+            System.out.println(Thread.currentThread().getName()+""+i);
+        }
+        return i;
+    }
+
+}
+
+
+public class CallableTest {
+     public static void main(String[] args) {
+            Target t1=new Target();
+            FutureTask<Integer> ft=new FutureTask<Integer>(t1);
+            Thread t2=new Thread(ft,"新线程");
+            t2.start();
+            try {
+                System.out.println(ft.get());
+            } catch (Exception e) {
+                // TODO: handle exception
+            }
+    }
+}
+```
+
+[toTop](#jump)
+
