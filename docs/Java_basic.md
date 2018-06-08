@@ -7,6 +7,7 @@
 - [异常](#异常)
 - [HTTP GET和POST区别](#http-get和post区别)
 - [Java中private、protected、public和default的区别](#java中privateprotectedpublic和default的区别)
+- [sleep wait区别](#sleep-wait区别)
 
 <!-- /TOC -->
 
@@ -47,6 +48,11 @@ POST：根据报文主题对指定资源做出处理，不安全，不幂等，�
 
 # Java中private、protected、public和default的区别
 ![](/img/javaclass_type.png)  
+
+# sleep wait区别
+sleep：Thread类的方法，必须带一个时间参数。会让当前线程休眠进入阻塞状态并释放CPU，提供其他线程运行的机会且不考虑优先级，**但如果有同步锁则sleep不会释放锁即其他线程无法获得同步锁**
+
+wait：Object类的方法，**必须放在循环体和同步代码块中，执行该方法的线程会释放锁**，进入线程等待池中等待被再次唤醒(notify随机唤醒，notifyAll全部唤醒，线程结束自动唤醒)即放入锁池中竞争同步锁
 
 [toTop](#jump)
 

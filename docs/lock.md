@@ -13,13 +13,40 @@ synchronized是java中的一个关键字。
 
 参考1 ：[深入理解Java并发之synchronized实现原理](https://blog.csdn.net/javazejian/article/details/72828483)
 
-
 [toTop](#jump)
-
 
 # synchronized与Lock的区别
 
 ![](/img/synchronizedAndLock.png)
 
+[toTop](#jump)
+
+# volatile
+
+volatile具备两种特性，第一就是**保证共享变量对所有线程的可见性**(所谓可见性，是指当一条线程修改了共享变量的值，新值对于其他线程来说是可以立即得知的)。将一个共享变量声明为volatile后，会有以下效应：
+1) 当写一个volatile变量时，JMM会把该线程对应的本地内存中的变量强制刷新到主内存中去；
+2) 这个写会操作会导致其他线程中的缓存无效。
+
+volatile还有一个特性：**禁止指令重排序优化**(重排序是指编译器和处理器为了优化程序性能而对指令序列进行排序的一种手段。)。
+
+1) 重排序操作不会对存在数据依赖关系的操作进行重排序。
+比如：a=1;b=a; 这个指令序列，由于第二个操作依赖于第一个操作，所以在编译时和处理器运行时这两个操作不会被重排序。
+
+2) 重排序是为了优化性能，但是不管怎么重排序，单线程下程序的执行结果不能被改变
+比如：a=1;b=2;c=a+b这三个操作，第一步（a=1)和第二步(b=2)由于不存在数据依赖关系，所以可能会发生重排序，但是c=a+b这个操作是不会被重排序的，因为需要保证最终的结果一定是c=a+b=3。
+
+**volitale不能保证原子性。**
+
+使用volatile必须具备以下2个条件：
+1) 对变量的写操作不依赖于当前值
+2) 该变量没有包含在具有其他变量的不变式中
+
+参考1 ：[谈谈Java中的volatile](https://www.cnblogs.com/chengxiao/p/6528109.html)
+
+参考2 : [就是要你懂 Java 中 volatile 关键字实现原理](http://www.importnew.com/27002.html)
+
+参考3 : [死磕Java并发：深入分析volatile的实现原理](http://www.importnew.com/23520.html)
 
 [toTop](#jump)
+
+# 
