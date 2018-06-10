@@ -1,5 +1,17 @@
 <a id = "jump">[首页](/README.md)</a>
 
+<!-- TOC -->
+
+- [Synchronized](#synchronized)
+- [synchronized与Lock的区别](#synchronized与lock的区别)
+- [volatile](#volatile)
+- [可重入锁](#可重入锁)
+    - [ReentrantLock](#reentrantlock)
+    - [AQS](#aqs)
+- [无锁CAS](#无锁cas)
+
+<!-- /TOC -->
+
 
 # Synchronized
 synchronized是java中的一个关键字。
@@ -49,4 +61,19 @@ volatile还有一个特性：**禁止指令重排序优化**(重排序是指编�
 
 [toTop](#jump)
 
-# 
+# 可重入锁
+
+可重入锁，也叫做递归锁，指的是同一线程 外层函数获得锁之后 ，内层递归函数仍然有获取该锁的代码，但不受影响。
+ReentrantLock 和synchronized 都是 可重入锁。
+可重入锁最大的作用是**避免死锁**。
+
+## ReentrantLock
+
+ReetrantLock是基于AQS并发框架实现的。
+
+## AQS
+AQS即是AbstractQueuedSynchronizer,内部通过一个int类型的成员变量state来控制同步状态(对同步状态执行CAS操作),当state=0时，则说明没有任何线程占有共享资源的锁，当state=1时，则说明有线程目前正在使用共享变量，其他线程必须加入同步队列进行等待，AQS内部通过内部类Node构成FIFO的同步队列来完成线程获取锁的排队工作，同时利用内部类ConditionObject构建等待队列，当Condition调用wait()方法后，线程将会加入等待队列中，而当Condition调用signal()方法后，线程将从等待队列转移到同步队列中进行锁竞争。
+
+参考1 ：[深入剖析基于并发AQS的(独占锁)重入锁(ReetrantLock)及其Condition实现原理](https://blog.csdn.net/javazejian/article/details/75043422)
+
+# 无锁CAS
