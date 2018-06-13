@@ -14,6 +14,13 @@
     - [基于数据库实现分布式锁](#基于数据库实现分布式锁)
     - [基于缓存（Redis等）实现分布式锁](#基于缓存redis等实现分布式锁)
     - [基于Zookeeper实现分布式锁](#基于zookeeper实现分布式锁)
+- [死锁](#死锁)
+    - [死锁产生的四个必要条件](#死锁产生的四个必要条件)
+    - [死锁预防](#死锁预防)
+    - [避免死锁](#避免死锁)
+        - [加锁顺序（线程按照一定的顺序加锁）](#加锁顺序线程按照一定的顺序加锁)
+        - [加锁时限](#加锁时限)
+        - [死锁检测](#死锁检测)
 
 <!-- /TOC -->
 
@@ -368,5 +375,134 @@ Curator提供的InterProcessMutex是分布式锁的实现。acquire方法用户�
 参考1 ：[分布式锁简单入门以及三种实现方式介绍](https://blog.csdn.net/xlgen157387/article/details/79036337)
 
 参考2 ：[三种方式实现分布式锁](https://blog.csdn.net/guoyunyuhou/article/details/79108717)
+
+[toTop](#jump)
+
+# 死锁
+
+## 死锁产生的四个必要条件
+
+* **互斥条件**：资源是独占的且排他使用，进程互斥使用资源，即任意时刻一个资源只能给一个进程使用，其他进程若申请一个资源，而该资源被另一进程占有时，则申请者等待直到资源被占有者释放。
+* **不可剥夺条件**：进程所获得的资源在未使用完毕之前，不被其他进程强行剥夺，而只能由获得该资源的进程资源释放。
+* **请求和保持条件**：进程每次申请它所需要的一部分资源，在申请新的资源的同时，继续占用已分配到的资源。
+* **循环等待条件**：在发生死锁时必然存在一个进程等待队列{P1,P2,…,Pn},其中P1等待P2占有的资源，P2等待P3占有的资源，…，Pn等待P1占有的资源，形成一个进程等待环路，环路中每一个进程所占有的资源同时被另一个申请，也就是前一个进程占有后一个进程所深情地资源。 
+
+例子
+
+```java
+/**  
+* 一个简单的死锁类  
+* 当DeadLock类的对象flag==1时（td1），先锁定o1,睡眠500毫秒  
+* 而td1在睡眠的时候另一个flag==0的对象（td2）线程启动，先锁定o2,睡眠500毫秒  
+* td1睡眠结束后需要锁定o2才能继续执行，而此时o2已被td2锁定；  
+* td2睡眠结束后需要锁定o1才能继续执行，而此时o1已被td1锁定；  
+* td1、td2相互等待，都需要得到对方锁定的资源才能继续执行，从而死锁。  
+*/    
+public class DeadLock implements Runnable {    
+    public int flag = 1;    
+    //静态对象是类的所有对象共享的    
+    private static Object o1 = new Object(), o2 = new Object();    
+    @Override    
+    public void run() {    
+        System.out.println("flag=" + flag);    
+        if (flag == 1) {    
+            synchronized (o1) {    
+                try {    
+                    Thread.sleep(500);    
+                } catch (Exception e) {    
+                    e.printStackTrace();    
+                }    
+                synchronized (o2) {    
+                    System.out.println("1");    
+                }    
+            }    
+        }    
+        if (flag == 0) {    
+            synchronized (o2) {    
+                try {    
+                    Thread.sleep(500);    
+                } catch (Exception e) {    
+                    e.printStackTrace();    
+                }    
+                synchronized (o1) {    
+                    System.out.println("0");    
+                }    
+            }    
+        }    
+    }    
+    
+    public static void main(String[] args) {    
+            
+        DeadLock td1 = new DeadLock();    
+        DeadLock td2 = new DeadLock();    
+        td1.flag = 1;    
+        td2.flag = 0;    
+        //td1,td2都处于可执行状态，但JVM线程调度先执行哪个线程是不确定的。    
+        //td2的run()可能在td1的run()之前运行    
+        new Thread(td1).start();    
+        new Thread(td2).start();    
+    
+    }    
+}    
+```
+## 死锁预防
+1) **破坏“不可剥夺”条件**：一个进程不能获得所需要的全部资源时便处于等待状态，等待期间他占有的资源将被隐式的释放重新加入到 系统的资源列表中，可以被其他的进程使用，而等待的进程只有重新获得自己原有的资源以及新申请的资源才可以重新启动，执行。
+2) **破坏”请求与保持条件"**：第一种方法静态分配即每个进程在开始执行时就申请他所需要的全部资源。第二种是动态分配即每个进程在申请所需要的资源时他本身不占用系统资源。
+3) **破坏“循环等待”条件**：采用资源有序分配其基本思想是将系统中的所有资源顺序编号，将紧缺的，稀少的采用较大的编号，在申请资源时必须按照编号的顺序进行，一个进程只有获得较小编号的进程才能申请较大编号的进程。
+
+## 避免死锁
+
+### 加锁顺序（线程按照一定的顺序加锁）
+
+```java
+Thread 1:
+  lock A 
+  lock B
+
+Thread 2:
+   wait for A
+   lock C (when A locked)
+
+Thread 3:
+   wait for A
+   wait for B
+   wait for C
+```
+
+按照顺序加锁是一种有效的死锁预防机制。但是，这种方式需要你事先知道所有可能会用到的锁(译者注：并对这些锁做适当的排序)，但总有些时候是无法预知的。
+
+### 加锁时限
+
+在尝试获取锁的时候加一个超时时间，这也就意味着在尝试获取锁的过程中若超过了这个时限该线程则放弃对该锁请求。若一个线程没有在给定的时限内成功获得所有需要的锁，则会进行回退并释放所有已经获得的锁，然后等待一段随机的时间再重试。这段随机的等待时间让其它线程有机会尝试获取相同的这些锁，并且让该应用在没有获得锁的时候可以继续运行。
+
+以下是一个例子，展示了两个线程以不同的顺序尝试获取相同的两个锁，在发生超时后回退并重试的场景：
+
+```java
+Thread 1 locks A
+Thread 2 locks B
+
+Thread 1 attempts to lock B but is blocked
+Thread 2 attempts to lock A but is blocked
+
+Thread 1's lock attempt on B times out
+Thread 1 backs up and releases A as well
+Thread 1 waits randomly (e.g. 257 millis) before retrying.
+
+Thread 2's lock attempt on A times out
+Thread 2 backs up and releases B as well
+Thread 2 waits randomly (e.g. 43 millis) before retrying.
+```
+
+这种机制存在一个问题，在Java中不能对synchronized同步块设置超时时间。你需要创建一个自定义锁，或使用Java5中java.util.concurrent包下的工具。
+
+### 死锁检测
+
+每当一个线程获得了锁，会在线程和锁相关的数据结构中（map、graph等等）将其记下。除此之外，每当有线程请求锁，也需要记录在这个数据结构中。
+
+当一个线程请求锁失败时，这个线程可以遍历锁的关系图看看是否有死锁发生。例如，线程A请求锁7，但是锁7这个时候被线程B持有，这时线程A就可以检查一下线程B是否已经请求了线程A当前所持有的锁。如果线程B确实有这样的请求，那么就是发生了死锁（线程A拥有锁1，请求锁7；线程B拥有锁7，请求锁1）。
+
+当然，死锁一般要比两个线程互相持有对方的锁这种情况要复杂的多。线程A等待线程B，线程B等待线程C，线程C等待线程D，线程D又在等待线程A。线程A为了检测死锁，它需要递进地检测所有被B请求的锁。从线程B所请求的锁开始，线程A找到了线程C，然后又找到了线程D，发现线程D请求的锁被线程A自己持有着。这是它就知道发生了死锁。
+
+那么当检测出死锁时，一个可行的做法是释放所有锁，回退，并且等待一段随机的时间后重试。这个和简单的加锁超时类似，不一样的是只有死锁已经发生了才回退，而不会是因为加锁的请求超时了。虽然有回退和等待，但是如果有大量的线程竞争同一批锁，它们还是会重复地死锁。
 
 [toTop](#jump)
