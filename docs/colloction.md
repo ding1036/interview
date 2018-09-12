@@ -124,8 +124,11 @@
 # HashSet
 1) HashSet由哈希表(实际上是一个HashMap实例)支持，不保证set的迭代顺序，并允许使用null元素。
 2) 基于HashMap实现，API也是对HashMap的行为进行了封装，可参考HashMap
+3) **所有放入HashSet中的集合元素实际上由HashMap的key来保存，而HashMap的value则存储了一个PRESENT，它是一个静态的Object对象。**根据HashMap的一个特性: 将一个key-value对放入HashMap中时，首先根据key的hashCode()返回值决定该Entry的存储位置，如果两个key的hash值相同，那么它们的存储位置相同。如果这个两个key的equalus比较返回true。那么新添加的Entry的value会覆盖原来的Entry的value，key不会覆盖。**因此,如果向HashSet中添加一个已经存在的元素，新添加的集合元素不会覆盖原来已有的集合元素。**
 
 参考： [深入Java集合学习系列：HashSet的实现原理](http://zhangshixi.iteye.com/blog/673143)
+
+参考2：[深入源码分析HashSet](https://blog.csdn.net/canot/article/details/51240251)
 
 [toTop](#jump)
 
