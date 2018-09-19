@@ -9,6 +9,8 @@
 - [Java中private、protected、public和default的区别](#java中privateprotectedpublic和default的区别)
 - [sleep wait区别](#sleep-wait区别)
 - [String 的intern()方法](#string-的intern方法)
+- [分派](#分派)
+    - [静态分派](#静态分派)
 
 <!-- /TOC -->
 
@@ -108,6 +110,53 @@ String s6 = s3 + s4;
 String s6 = (s3 + s4).intern();
 ```
 s6 存储的 HelloWorld 是存放字符串池中
+
+[toTop](#jump)
+
+
+# 分派
+## 静态分派
+
+```java
+static abstract class A{}
+
+static  class B extends A{}
+
+static class C extends A{}
+
+public static void sayHello(A a){
+	System.out.println("a");
+}
+
+public static void sayHello(B a){
+	System.out.println("b");
+}
+
+public static void sayHello(C a){
+	System.out.println("c");
+}
+
+public static void main(String args[]) {
+		A a = new B();
+        A b = new C();
+        sayHello(a);
+        sayHello(b);	
+}
+```
+* 输出
+
+```java
+a
+a
+```
+* 解析
+
+在代码
+```java
+A a = new B();
+```
+中A类型为变量的静态类型(Static Type),或者叫做外观模型(Apparent Type), 后面的B类型为变量的实际类型(Actual Type)。虚拟机在重载时通过参数的静态类型而不是实际类型作为判断依据。
+
 
 [toTop](#jump)
 
