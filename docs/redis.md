@@ -15,6 +15,7 @@
     - [AOF](#aof)
     - [二者优缺点](#二者优缺点)
 - [redis为什么要设计成单线程](#redis为什么要设计成单线程)
+- [Redis实现Session共享](#redis实现session共享)
 
 <!-- /TOC -->
 
@@ -304,4 +305,11 @@ redis用单线程也不是没有问题。有一个很明显的问题就是。当
 
 [toTop](#jump)
 
+# Redis实现Session共享
+
+参考 : [spring boot + redis 实现session共享](https://www.cnblogs.com/mengmeng89012/p/5519698.html)
+
+参考 : [springboot+springsession+redis+feign实现session共享](https://blog.csdn.net/niemingming/article/details/80862949)
+
+[toTop](#jump)
 
