@@ -4,6 +4,9 @@
 - [AOP](#aop)
     - [AOP执行顺序](#aop执行顺序)
     - [JDK代理和CGLIB代理](#jdk代理和cglib代理)
+- [@ControllerAdvice + @ExceptionHandler 全局处理 Controller 层异常](#controlleradvice--exceptionhandler-全局处理-controller-层异常)
+- [Spring MVC Controller单例还是多例](#spring-mvc-controller单例还是多例)
+- [@Resource与@Autowired注解的区别](#resource与autowired注解的区别)
 
 <!-- /TOC -->
 
@@ -132,5 +135,118 @@ CGLib动态代理是通过字节码底层继承要代理类来实现（如果被
 
 
 
+
+[toTop](#jump)
+
+
+# @ControllerAdvice + @ExceptionHandler 全局处理 Controller 层异常
+
+参考1 ：[@ControllerAdvice + @ExceptionHandler 全局处理 Controller 层异常](https://blog.csdn.net/kinginblue/article/details/70186586)
+
+[toTop](#jump)
+
+#  Spring MVC Controller单例还是多例
+
+* Spring MVC Controller默认是单例的：
+
+单例的原因有二：
+
+1) 为了性能。单例不用每次都new.
+
+2) 不需要多例。，如果你给controller中定义很多的属性，那么单例肯定会出现竞争访问了。因此，只要controller中不定义属性，那么单例完全是安全的。下面给个例子说明下：
+
+```java
+package com.lavasoft.demo.web.controller.lsh.ch5;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+@RequestMapping("/demo")
+@Scope("prototype") //定义为多例
+public class MultViewController {
+    private static int st = 0;      //静态的
+    private int index = 0;          //非静态
+    @RequestMapping("/show")
+    public String toShow(ModelMap model) {
+        User user = new User();
+        user.setUserName("testuname");
+        user.setAge("23");
+        model.put("user", user);
+        return "/show";
+    }
+    @RequestMapping("/test")
+    public String test() {
+        System.out.println(st++ + " | " + index++);
+        return "/test";
+    }
+}
+```
+
+单例结果
+
+```java
+0 | 0
+
+1 | 1
+
+2 | 2
+
+3 | 3
+
+4 | 4
+```
+
+多例结果
+
+```java
+0 | 0
+
+1 | 0
+
+2 | 0
+
+3 | 0
+
+4 | 0
+```
+
+从此可见，单例是不安全的，会导致属性重复使用。
+
+ 
+
+最佳实践：
+
+1) 不要在controller中定义成员变量。
+
+2) 万一必须要定义一个非静态成员变量时候，则通过注解@Scope("prototype")，将其设置为多例模式。
+
+
+[toTop](#jump)
+
+# @Resource与@Autowired注解的区别
+
+* @Resource默认按照名称方式进行bean匹配，@Autowired默认按照类型方式进行bean匹配
+* @Resource(import javax.annotation.Resource;)是J2EE的注解，@Autowired( import org.springframework.beans.factory.annotation.Autowired;)是Spring的注解
+
+```java
+//区别使用类
+@Resource(name = "xxxImpl") 
+private Human human;
+//一般是类名首字母小写，因为使用@Service，容器为我们创建bean时默认类名首字母小写
+```
+
+如果使用@Autowire
+要配上@Qualifier("xxxImpl")
+```java
+@Autowired
+@Qualifier("manImpl")
+private Human human;
+```
+
+参考1 :[@Autowired 与@Resource的区别](https://blog.csdn.net/weixin_40423597/article/details/80643990)
+
+参考1 : [@Resource与@Autowired注解的区别](https://blog.csdn.net/wangzuojia001/article/details/54312074/)
 
 [toTop](#jump)
