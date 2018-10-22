@@ -7,6 +7,10 @@
 - [@ControllerAdvice + @ExceptionHandler 全局处理 Controller 层异常](#controlleradvice--exceptionhandler-全局处理-controller-层异常)
 - [Spring MVC Controller单例还是多例](#spring-mvc-controller单例还是多例)
 - [@Resource与@Autowired注解的区别](#resource与autowired注解的区别)
+- [springMVC请求流程详解](#springmvc请求流程详解)
+- [SpringMVC的拦截器（Interceptor）和过滤器（Filter）的区别与联系](#springmvc的拦截器interceptor和过滤器filter的区别与联系)
+    - [过滤器](#过滤器)
+    - [拦截器](#拦截器)
 
 <!-- /TOC -->
 
@@ -248,5 +252,41 @@ private Human human;
 参考1 :[@Autowired 与@Resource的区别](https://blog.csdn.net/weixin_40423597/article/details/80643990)
 
 参考1 : [@Resource与@Autowired注解的区别](https://blog.csdn.net/wangzuojia001/article/details/54312074/)
+
+[toTop](#jump)
+
+#  springMVC请求流程详解
+
+SpringMVC核心处理流程：
+
+1) DispatcherServlet前端控制器接收发过来的请求，交给HandlerMapping处理器映射器
+
+2) HandlerMapping处理器映射器，根据请求路径找到相应的HandlerAdapter处理器适配器（处理器适配器就是那些拦截器或Controller）
+
+3) HandlerAdapter处理器适配器，处理一些功能请求，返回一个ModelAndView对象（包括模型数据、逻辑视图名）
+
+4) ViewResolver视图解析器，先根据ModelAndView中设置的View解析具体视图
+
+5) 然后再将Model模型中的数据渲染到View上
+
+![](/img/springmvc_flow.png)
+[toTop](#jump)
+
+# SpringMVC的拦截器（Interceptor）和过滤器（Filter）的区别与联系
+
+## 过滤器
+
+**依赖于servlet容器**,是JavaEE标准,是在请求进入容器之后，还未进入Servlet之前进行预处理，并且在请求结束返回给前端这之间进行后期处理。在实现上基于函数回调，可以对几乎所有请求进行过滤，但是缺点是一个过滤器实例**只能在容器初始化时调用一次**。使用过滤器的目的是用来做一些过滤操作，获取我们想要获取的数据，比如：在过滤器中修改字符编码；在过滤器中修改HttpServletRequest的一些参数，包括：过滤低俗文字、危险字符等
+
+## 拦截器
+
+拦截器不依赖与servlet容器，**依赖于web框架**，在SpringMVC中就是依赖于SpringMVC框架。在实现上**基于Java的反射机制**，属于面向切面编程（AOP）的一种运用。由于拦截器是基于web框架的调用，因此可以使用spring的依赖注入（DI）获取IOC容器中的各个bean,进行一些业务操作，同时一个拦截器实例在一个controller生命周期之内**可以多次调用**。但是缺点是**只能对controller请求进行拦截**，
+1) 请求还没有到controller层时进行拦截，
+2) 请求走出controller层次，还没有到渲染时图层时进行拦截，
+3) 结束视图渲染，但是还没有到servlet的结束时进行拦截。对其他的一些比如直接访问静态资源的请求则没办法进行拦截处理,拦截器功在对请求权限鉴定方面确实很有用处
+
+![](/img/filterAndIntercept.png)
+
+参考 1 :[spring过滤器和拦截器的区别和联系](https://www.cnblogs.com/nizuimeiabc1/p/6774073.html)
 
 [toTop](#jump)
