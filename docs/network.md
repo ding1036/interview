@@ -12,6 +12,15 @@
     - [为什么需要2MSL时间？](#为什么需要2msl时间)
     - [为什么是四次挥手，而不是三次或是五次、六次？](#为什么是四次挥手而不是三次或是五次六次)
     - [如果已经建立了连接，但是客户端突然出现故障了怎么办](#如果已经建立了连接但是客户端突然出现故障了怎么办)
+- [https和http的区别](#https和http的区别)
+- [linux nginx配置https](#linux-nginx配置https)
+- [GET POST区别](#get-post区别)
+- [HTTP 状态码](#http-状态码)
+    - [1XX 信息](#1xx-信息)
+    - [2XX 成功](#2xx-成功)
+    - [3XX 重定向](#3xx-重定向)
+    - [4XX 客户端错误](#4xx-客户端错误)
+    - [5XX 服务器错误](#5xx-服务器错误)
 
 <!-- /TOC -->
 
@@ -107,4 +116,120 @@ TCP还设有一个保活计时器，显然，客户端如果出现故障，服�
 参考 2 :[TCP三次握手及四次挥手详解及常见面试题](https://blog.csdn.net/ZWE7616175/article/details/80432486)
 
 
+[toTop](#jump)
+
+
+# https和http的区别
+
+1) HTTPS更安全：HTTPS协议是由SSL+HTTP协议构建的可进行加密传输、身份认证的网络协议，要比HTTP协议的信息明文传输安全；
+
+2) HTTPS需要申请证书：HTTPS协议需要到CA申请证书，一般免费证书很少，需要交费，费用大概与.com域名差不多，每年需要大约几十元的费用。而常见的HTTP协议则没有这一项；
+
+3) 端口不同：HTTP使用的是大家最常见的80端口，而HTTPS连接使用的是443端口；
+
+4) 安全性不同：HTTP的连接很简单，是无状态的。而HTTPS协议是SSL+HTTP协议构建的可进行加密传输、身份认证的网络协议，要比HTTP协议安全；
+
+HTTPS跟HTTP一样，只不过增加了SSL。
+
+1、HTTP包含如下动作：
+```
+
+    （1）浏览器打开一个TCP连接
+
+    （2）浏览器发送HTTP请求到服务器端
+
+    （3）服务器发送HTTP回应信息到浏览器
+
+    （4）TCP连接关闭
+```
+
+2、SSL包含如下动作：
+
+```
+
+    （1）验证服务器端；
+
+    （2）允许客户端和服务器端选择加密算法和密码，确保双方都支持
+
+    （3）验证客户端（可选）
+
+    （4）使用公钥加密技术来生成共享加密数据
+
+    （5）创建一个加密的SSL连接
+
+    （6）基于该SSL连接传递HTTP请求
+```
+
+参考1 : [https和http的区别](https://blog.csdn.net/weixin_37766296/article/details/80459241)
+
+参考2 : [白话Https](https://www.cnblogs.com/xinzhao/p/4949344.html)
+
+[toTop](#jump)
+
+# linux nginx配置https
+
+
+参考1 : [linux nginx配置https](https://blog.csdn.net/w410589502/article/details/72833283)
+
+
+[toTop](#jump)
+
+# GET POST区别
+
+![](/img/get_post.PNG)
+
+[toTop](#jump)
+
+# HTTP 状态码
+
+## 1XX 信息
+
+```
+100 Continue ：表明到目前为止都很正常，客户端可以继续发送请求或者忽略这个响应。
+```
+## 2XX 成功
+
+```
+200 OK
+
+204 No Content ：请求已经成功处理，但是返回的响应报文不包含实体的主体部分。一般在只需要从客户端往服务器发送信息，而不需要返回数据时使用。
+
+206 Partial Content ：表示客户端进行了范围请求，响应报文包含由 Content-Range 指定范围的实体内容。
+```
+
+## 3XX 重定向
+
+```
+301 Moved Permanently ：永久性重定向
+
+302 Found ：临时性重定向
+
+303 See Other ：和 302 有着相同的功能，但是 303 明确要求客户端应该采用 GET 方法获取资源。
+
+注：虽然 HTTP 协议规定 301、302 状态下重定向时不允许把 POST 方法改成 GET 方法，但是大多数浏览器都会在 301、302 和 303 状态下的重定向把 POST 方法改成 GET 方法。
+
+304 Not Modified ：如果请求报文首部包含一些条件，例如：If-Match，If-Modified-Since，If-None-Match，If-Range，If-Unmodified-Since，如果不满足条件，则服务器会返回 304 状态码。
+
+307 Temporary Redirect ：临时重定向，与 302 的含义类似，但是 307 要求浏览器不会把重定向请求的 POST 方法改成 GET 方法。
+```
+
+## 4XX 客户端错误
+
+```
+400 Bad Request ：请求报文中存在语法错误。
+
+401 Unauthorized ：该状态码表示发送的请求需要有认证信息（BASIC 认证、DIGEST 认证）。如果之前已进行过一次请求，则表示用户认证失败。
+
+403 Forbidden ：请求被拒绝。
+
+404 Not Found
+```
+
+## 5XX 服务器错误
+
+```
+500 Internal Server Error ：服务器正在执行请求时发生错误。
+
+503 Service Unavailable ：服务器暂时处于超负载或正在进行停机维护，现在无法处理请求。
+```
 [toTop](#jump)
