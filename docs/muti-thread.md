@@ -14,6 +14,12 @@
     - [继承thread类](#继承thread类)
     - [实现runnable 接口](#实现runnable-接口)
     - [实现callable 接口](#实现callable-接口)
+- [ThreadLocal](#threadlocal)
+    - [ThreadLocal类提供的几个方法](#threadlocal类提供的几个方法)
+    - [ThreadLocalMap](#threadlocalmap)
+    - [解决Hash冲突](#解决hash冲突)
+    - [如何避免泄漏](#如何避免泄漏)
+    - [总结](#总结)
 
 <!-- /TOC -->
 
@@ -525,3 +531,56 @@ public class CallableTest {
 
 [toTop](#jump)
 
+# ThreadLocal
+
+![](/img/threadlocal.jpg)
+
+## ThreadLocal类提供的几个方法
+
+```java
+public T get() { }
+public void set(T value) { }
+public void remove() { }
+protected T initialValue() { }
+
+```
+## ThreadLocalMap
+
+ThreadLocalMap是ThreadLocal的内部类，没有实现Map接口，用独立的方式实现了Map的功能，其内部的Entry也独立实现。
+
+![](/img/threadlocalmap.png)
+
+在ThreadLocalMap中，也是用Entry来保存K-V结构数据的。但是Entry中key只能是ThreadLocal对象，这点被Entry的构造方法已经限定死了。
+Entry继承自WeakReference（弱引用，生命周期只能存活到下次GC前），但只有Key是弱引用类型的，Value并非弱引用。
+
+## 解决Hash冲突
+ThreadLocalMap解决Hash冲突的方式就是简单的步长加1或减1，寻找下一个相邻的位置。
+
+## 如何避免泄漏
+既然Key是弱引用，那么我们要做的事，就是在调用ThreadLocal的get()、set()方法时完成后再调用remove方法，将Entry节点和Map的引用关系移除，这样整个Entry对象在GC Roots分析后就变成不可达了，下次GC的时候就可以被回收。
+
+## 总结
+1) ThreadLocal只是操作Thread中的ThreadLocalMap对象的集合；
+
+2) ThreadLocalMap变量属于线程的内部属性，不同的线程拥有完全不同的ThreadLocalMap变量；
+
+3) 线程中的ThreadLocalMap变量的值是在ThreadLocal对象进行set或者get操作时创建的；
+
+4) 使用当前线程的ThreadLocalMap的关键在于使用当前的ThreadLocal的实例作为key来存储value值；
+
+5) ThreadLocal模式至少从两个方面完成了数据访问隔离，即纵向隔离(线程与线程之间的ThreadLocalMap不同)和横向隔离(不同的ThreadLocal实例之间的互相隔离)；
+
+6) 一个线程中的所有的局部变量其实存储在该线程自己的同一个map属性中；
+
+7) 线程死亡时，线程局部变量会自动回收内存；
+
+8) 线程局部变量时通过一个 Entry 保存在map中，该Entry 的key是一个 WeakReference包装的ThreadLocal, value为线程局部变量，key 到 value 的映射是通过：ThreadLocal.threadLocalHashCode & (INITIAL_CAPACITY - 1) 来完成的；
+
+9) 当线程拥有的局部变量超过了容量的2/3(没有扩大容量时是10个)，会涉及到ThreadLocalMap中Entry的回收；
+
+参考 1 : [ThreadLocal-面试必问深度解析](https://www.jianshu.com/p/98b68c97df9b)
+
+参考 2 : [Java多线程编程-（8）-多图深入分析ThreadLocal原理](https://blog.csdn.net/xlgen157387/article/details/78297568)
+
+
+[toTop](#jump) 
