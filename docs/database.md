@@ -24,6 +24,7 @@
             - [分区的优点](#分区的优点)
             - [分区的限制：](#分区的限制)
         - [分表](#分表)
+- [mysql千万级大表在线加索引（待验证是否可行）](#mysql千万级大表在线加索引待验证是否可行)
 
 <!-- /TOC -->
 
@@ -247,6 +248,23 @@ PARTITIONS 3;
 参考 2 :[mysql的分区和分表](https://www.cnblogs.com/phpshen/p/6198375.html)
 
 参考 2 :[数据库的分区分库分表，水平切分与垂直切分](https://blog.csdn.net/weixin_39684625/article/details/79527739)
+
+
+[toTop](#jump)
+
+# mysql千万级大表在线加索引（待验证是否可行）
+
+```sql
+create table tmp like paper_author;
+
+ALTER TABLE tmp ADD INDEX ( `PaperID` );
+
+insert into tmp(ooo，...)  select  ooo,... from paper_author;
+
+RENAME TABLE paper_author TO tmp2, tmp to paper_author;
+
+drop table tmp2;
+```
 
 
 [toTop](#jump)
