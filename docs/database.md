@@ -266,5 +266,4 @@ RENAME TABLE paper_author TO tmp2, tmp to paper_author;
 drop table tmp2;
 ```
 
-
 [toTop](#jump)
