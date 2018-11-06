@@ -1,6 +1,13 @@
 <a id = "jump">[首页](/README.md)</a>
 
+<!-- TOC -->
 
+- [CAP](#cap)
+    - [Consistency 一致性](#consistency-一致性)
+    - [Availability 可用性](#availability-可用性)
+    - [Partition Tolerance分区容错性](#partition-tolerance分区容错性)
+
+<!-- /TOC -->
 
 # CAP
 
