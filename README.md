@@ -27,6 +27,10 @@
 * [redis](docs/redis.md)
 * [zookeeper](docs/zookeeper.md)
 
+# 分布式
+
+* [分布式](docs/distributed.md)
+
 ## 网络
 
 * [网络基础](docs/network.md)
