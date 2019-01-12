@@ -1,32 +1,5 @@
 <a id = "jump">[首页](/README.md)</a>
-<!-- TOC -->
-
-- [class.forName()和classLoader.loadClass()区别](#classforname和classloaderloadclass区别)
-- [数据库链接为什么使用Class.forName(className)](#数据库链接为什么使用classfornameclassname)
-- [类加载过程](#类加载过程)
-    - [加载：（重点）](#加载重点)
-    - [验证：（了解）](#验证了解)
-    - [准备：（了解）](#准备了解)
-    - [解析：（了解）](#解析了解)
-- [类加载器](#类加载器)
-    - [类与类加载器](#类与类加载器)
-    - [双亲委派模型](#双亲委派模型)
-- [java内存区域](#java内存区域)
-- [堆，栈，方法区存储内容](#堆栈方法区存储内容)
-- [垃圾回收](#垃圾回收)
-    - [如何确定某个对象是“垃圾”](#如何确定某个对象是垃圾)
-    - [典型的垃圾收集算法](#典型的垃圾收集算法)
-- [常用JVM优化参数](#常用jvm优化参数)
-- [JAVA 内存模型](#java-内存模型)
-- [内存溢出和内存泄漏](#内存溢出和内存泄漏)
-    - [内存泄露的几种场景](#内存泄露的几种场景)
-    - [避免内存泄漏](#避免内存泄漏)
-    - [内存溢出](#内存溢出)
-        - [堆内存溢出](#堆内存溢出)
-        - [方法区内存溢出](#方法区内存溢出)
-        - [线程栈溢出](#线程栈溢出)
-
-<!-- /TOC -->
+<!-- TOC -->autoauto- [class.forName()和classLoader.loadClass()区别](#classforname和classloaderloadclass区别)auto- [数据库链接为什么使用Class.forName(className)](#数据库链接为什么使用classfornameclassname)auto- [类加载过程](#类加载过程)auto    - [加载：（重点）](#加载重点)auto    - [验证：（了解）](#验证了解)auto    - [准备：（了解）](#准备了解)auto    - [解析：（了解）](#解析了解)auto- [类加载器](#类加载器)auto    - [类与类加载器](#类与类加载器)auto    - [双亲委派模型](#双亲委派模型)auto- [java内存区域](#java内存区域)auto- [堆，栈，方法区存储内容](#堆栈方法区存储内容)auto- [垃圾回收](#垃圾回收)auto    - [如何确定某个对象是“垃圾”](#如何确定某个对象是垃圾)auto    - [典型的垃圾收集算法](#典型的垃圾收集算法)auto- [常用JVM优化参数](#常用jvm优化参数)auto- [JAVA 内存模型](#java-内存模型)auto- [内存溢出和内存泄漏](#内存溢出和内存泄漏)auto    - [内存泄露的几种场景](#内存泄露的几种场景)auto    - [避免内存泄漏](#避免内存泄漏)auto    - [内存溢出](#内存溢出)auto        - [堆内存溢出](#堆内存溢出)auto        - [方法区内存溢出](#方法区内存溢出)auto        - [线程栈溢出](#线程栈溢出)auto- [垃圾收集器](#垃圾收集器)auto    - [G1](#g1)autoauto<!-- /TOC -->
 # class.forName()和classLoader.loadClass()区别
 Class.forName(className)方法，内部实际调用的方法是  Class.forName(className,true,classloader);第2个boolean参数表示类是否需要初始化，Class.forName(className)默认是需要初始化。一旦初始化，就会触发目标对象的 static块代码执行，static参数也也会被再次初始化。  
 ClassLoader.loadClass(className)方法，内部实际调用的方法是  ClassLoader.loadClass(className,false);不进行包括初始化等一些列步骤，那么静态块和静态对象就不会得到执行.
@@ -291,5 +264,50 @@ Gc可以有效的解决第一种情况，但是无法保证情况二，所以**J
 参考2 : [【Java JVM】如何避免内存泄漏、溢出](https://blog.csdn.net/u013177446/article/details/53941021)
 
 参考3 : [常见的内存泄漏原因及解决方法](https://www.jianshu.com/p/90caf813682d)
+
+[toTop](#jump)
+
+# 垃圾收集器
+
+## G1
+
+### 一、基础知识
+1) 初衷
+在G1提出之前，经典的垃圾收集器主要有三种类型：串行收集器、并行收集器和并发标记清除收集器，这三种收集器分别可以是满足Java应用三种不同的需求：内存占用及并发开销最小化、应用吞吐量最大化和应用GC暂停时间最小化，但是，上述三种垃圾收集器都有几个共同的问题：（1）所有针对老年代的操作必须**扫描整个老年代空间**；（2）新生代和老年代是独立的连续的内存块，**必须先决定年轻代和老年代在虚拟地址空间的位置**。
+
+2) 设计目标
+G1是一种服务端应用使用的垃圾收集器，目标是用在多核、大内存的机器上，它在大多数情况下可以实现指定的GC暂停时间，同时还能保持较高的吞吐量。
+
+3) 使用场景
+G1适用于以下几种应用：
+可以像CMS收集器一样，允许垃圾收集线程和应用线程并行执行，即**需要额外的CPU资源；**
+**压缩空闲空间不会延长GC的暂停时间；**
+**需要更易预测的GC暂停时间；**
+**不需要实现很高的吞吐量**
+
+### 二、G1的重要概念
+
+1. 分区（Region）
+G1采取了不同的策略来解决并行、串行和CMS收集器的碎片、暂停时间不可控制等问题——G1将整个堆分成相同大小的分区（Region）
+
+![](/img/g1_heap.jpg)
+
+有的分区内垃圾对象特别多，有的分区内垃圾对象很少，G1会**优先回收垃圾对象特别多的分区**，这样可以花费较少的时间来回收这些分区的垃圾
+
+G1还是一种**带压缩**的收集器，在回收老年代的分区时，是将存活的对象从一个分区拷贝到另一个可用分区，这个拷贝的过程就实现了局部的压缩。每个分区的大小从1M到32M不等，但是**都是2的冥次方**。
+
+2. 收集集合（CSet）
+一组可被回收的分区的集合。
+
+3. 已记忆集合（RSet）
+RSet记录了其他Region中的对象引用本Region中对象的关系，属于points-into结构（谁引用了我的对象）。RSet的价值在于使得垃圾收集器不需要扫描整个堆找到谁引用了当前分区中的对象，只需要扫描RSet即可。
+
+![](/img/g1_rset.jpg)
+
+(GC则是在points-out的card table之上再加了一层结构来构成points-into RSet：每个region会记录下到底哪些别的region有指向自己的指针，而这些指针分别在哪些card的范围内。 这个RSet其实是一个hash table，key是别的region的起始地址，value是一个集合，里面的元素是card table的index。 举例来说，如果region A的RSet里有一项的key是region B，value里有index为1234的card，它的意思就是region B的一个card里有引用指向region A。所以对region A来说，该RSet记录的是points-into的关系；而card table仍然记录了points-out的关系。)
+
+4. Snapshot-At-The-Beginning(SATB)
+G1 GC的并发理论基础就是SATB，SATB是由Taiichi Yuasa为增量式标记清除垃圾收集器设计的一个标记算法
+CMS的incremental update设计使得它在remark阶段必须重新扫描所有线程栈和整个young gen作为root；G1的SATB设计在remark阶段则只需要扫描剩下的satb_mark_queu
 
 [toTop](#jump)
