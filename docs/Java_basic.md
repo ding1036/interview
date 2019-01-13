@@ -39,6 +39,8 @@
     - [其他](#其他-1)
         - [dmesg](#dmesg)
         - [Arthas](#arthas)
+- [泛型](#泛型)
+    - [集合与泛型](#集合与泛型)
 
 <!-- /TOC -->
 
@@ -519,7 +521,19 @@ date -d "1970-01-01 UTC `echo "$(date +%s)-$(cat /proc/uptime|cut -f 1 -d' ')+12
 [用户文档](https://alibaba.github.io/arthas/)
 [简单使用说明](https://mp.weixin.qq.com/s/5Yj6UckTabrQbgJ9TLV1gQ)
 
+[toTop](#jump)
 
+# 泛型
+
+## 集合与泛型
+
+![](/img/generic1.png)
+![](/img/generic2.png)
+![](/img/generic3.png)
+![](/img/generic4.png)
+![](/img/generic5.png)
+
+参考:码出效率6.5节
 
 [toTop](#jump)
 

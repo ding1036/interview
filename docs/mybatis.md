@@ -1,6 +1,12 @@
 <a id = "jump">[首页](/README.md)</a>
 
-<!-- TOC -->autoauto- [mybatis缓存机制](#mybatis缓存机制)auto    - [一级缓存](#一级缓存)auto    - [二级缓存](#二级缓存)autoauto<!-- /TOC -->
+<!-- TOC -->
+
+- [mybatis缓存机制](#mybatis缓存机制)
+    - [一级缓存](#一级缓存)
+    - [二级缓存](#二级缓存)
+
+<!-- /TOC -->
 
 
 # mybatis缓存机制

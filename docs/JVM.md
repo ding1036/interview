@@ -1,5 +1,37 @@
 <a id = "jump">[首页](/README.md)</a>
-<!-- TOC -->autoauto- [class.forName()和classLoader.loadClass()区别](#classforname和classloaderloadclass区别)auto- [数据库链接为什么使用Class.forName(className)](#数据库链接为什么使用classfornameclassname)auto- [类加载过程](#类加载过程)auto    - [加载：（重点）](#加载重点)auto    - [验证：（了解）](#验证了解)auto    - [准备：（了解）](#准备了解)auto    - [解析：（了解）](#解析了解)auto- [类加载器](#类加载器)auto    - [类与类加载器](#类与类加载器)auto    - [双亲委派模型](#双亲委派模型)auto- [java内存区域](#java内存区域)auto- [堆，栈，方法区存储内容](#堆栈方法区存储内容)auto- [垃圾回收](#垃圾回收)auto    - [如何确定某个对象是“垃圾”](#如何确定某个对象是垃圾)auto    - [典型的垃圾收集算法](#典型的垃圾收集算法)auto- [常用JVM优化参数](#常用jvm优化参数)auto- [JAVA 内存模型](#java-内存模型)auto- [内存溢出和内存泄漏](#内存溢出和内存泄漏)auto    - [内存泄露的几种场景](#内存泄露的几种场景)auto    - [避免内存泄漏](#避免内存泄漏)auto    - [内存溢出](#内存溢出)auto        - [堆内存溢出](#堆内存溢出)auto        - [方法区内存溢出](#方法区内存溢出)auto        - [线程栈溢出](#线程栈溢出)auto- [垃圾收集器](#垃圾收集器)auto    - [G1](#g1)autoauto<!-- /TOC -->
+<!-- TOC -->
+
+- [class.forName()和classLoader.loadClass()区别](#classforname和classloaderloadclass区别)
+- [数据库链接为什么使用Class.forName(className)](#数据库链接为什么使用classfornameclassname)
+- [类加载过程](#类加载过程)
+    - [加载：（重点）](#加载重点)
+    - [验证：（了解）](#验证了解)
+    - [准备：（了解）](#准备了解)
+    - [解析：（了解）](#解析了解)
+- [类加载器](#类加载器)
+    - [类与类加载器](#类与类加载器)
+    - [双亲委派模型](#双亲委派模型)
+- [java内存区域](#java内存区域)
+- [堆，栈，方法区存储内容](#堆栈方法区存储内容)
+- [垃圾回收](#垃圾回收)
+    - [如何确定某个对象是“垃圾”](#如何确定某个对象是垃圾)
+    - [典型的垃圾收集算法](#典型的垃圾收集算法)
+- [常用JVM优化参数](#常用jvm优化参数)
+- [JAVA 内存模型](#java-内存模型)
+- [内存溢出和内存泄漏](#内存溢出和内存泄漏)
+    - [内存泄露的几种场景](#内存泄露的几种场景)
+    - [避免内存泄漏](#避免内存泄漏)
+    - [内存溢出](#内存溢出)
+        - [堆内存溢出](#堆内存溢出)
+        - [方法区内存溢出](#方法区内存溢出)
+        - [线程栈溢出](#线程栈溢出)
+- [垃圾收集器](#垃圾收集器)
+    - [G1](#g1)
+        - [一、基础知识](#一基础知识)
+        - [二、G1的重要概念](#二g1的重要概念)
+
+<!-- /TOC -->
+
 # class.forName()和classLoader.loadClass()区别
 Class.forName(className)方法，内部实际调用的方法是  Class.forName(className,true,classloader);第2个boolean参数表示类是否需要初始化，Class.forName(className)默认是需要初始化。一旦初始化，就会触发目标对象的 static块代码执行，static参数也也会被再次初始化。  
 ClassLoader.loadClass(className)方法，内部实际调用的方法是  ClassLoader.loadClass(className,false);不进行包括初始化等一些列步骤，那么静态块和静态对象就不会得到执行.

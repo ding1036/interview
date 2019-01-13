@@ -1,6 +1,31 @@
 <a id = "jump">[首页](/README.md)</a>
 
-<!-- TOC -->autoauto- [Synchronized](#synchronized)auto    - [synchronized 关键字之锁的升级（偏向锁->轻量级锁->重量级锁）](#synchronized-关键字之锁的升级偏向锁-轻量级锁-重量级锁)auto- [synchronized与Lock的区别](#synchronized与lock的区别)auto- [volatile](#volatile)auto- [可重入锁](#可重入锁)auto    - [ReentrantLock](#reentrantlock)auto    - [AQS](#aqs)auto- [无锁CAS](#无锁cas)auto    - [ABA问题](#aba问题)auto- [分布式锁](#分布式锁)auto    - [基于数据库实现分布式锁](#基于数据库实现分布式锁)auto    - [基于缓存（Redis等）实现分布式锁](#基于缓存redis等实现分布式锁)auto    - [基于Zookeeper实现分布式锁](#基于zookeeper实现分布式锁)auto- [死锁](#死锁)auto    - [死锁产生的四个必要条件](#死锁产生的四个必要条件)auto    - [死锁预防](#死锁预防)auto    - [避免死锁](#避免死锁)auto        - [加锁顺序（线程按照一定的顺序加锁）](#加锁顺序线程按照一定的顺序加锁)auto        - [加锁时限](#加锁时限)auto        - [死锁检测](#死锁检测)autoauto<!-- /TOC -->
+<!-- TOC -->
+
+- [Synchronized](#synchronized)
+    - [synchronized 关键字之锁的升级（偏向锁->轻量级锁->重量级锁）](#synchronized-关键字之锁的升级偏向锁-轻量级锁-重量级锁)
+        - [偏向锁 -> 轻量级锁](#偏向锁---轻量级锁)
+        - [偏向锁->轻量级锁->重量级锁的优缺点对比](#偏向锁-轻量级锁-重量级锁的优缺点对比)
+- [synchronized与Lock的区别](#synchronized与lock的区别)
+- [volatile](#volatile)
+- [可重入锁](#可重入锁)
+    - [ReentrantLock](#reentrantlock)
+    - [AQS](#aqs)
+- [无锁CAS](#无锁cas)
+    - [ABA问题](#aba问题)
+- [分布式锁](#分布式锁)
+    - [基于数据库实现分布式锁](#基于数据库实现分布式锁)
+    - [基于缓存（Redis等）实现分布式锁](#基于缓存redis等实现分布式锁)
+    - [基于Zookeeper实现分布式锁](#基于zookeeper实现分布式锁)
+- [死锁](#死锁)
+    - [死锁产生的四个必要条件](#死锁产生的四个必要条件)
+    - [死锁预防](#死锁预防)
+    - [避免死锁](#避免死锁)
+        - [加锁顺序（线程按照一定的顺序加锁）](#加锁顺序线程按照一定的顺序加锁)
+        - [加锁时限](#加锁时限)
+        - [死锁检测](#死锁检测)
+
+<!-- /TOC -->
 
 
 # Synchronized

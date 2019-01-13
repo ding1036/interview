@@ -1,11 +1,32 @@
 <a id = "jump">[首页](/README.md)</a>
 
-<!-- TOC -->autoauto- [是否允许空值](#是否允许空值)auto- [是否有序](#是否有序)auto- [ArrayList和LinkedList区别](#arraylist和linkedlist区别)auto    - [时间复杂度](#时间复杂度)auto- [HashMap（重要）](#hashmap重要)auto    - [1.8 为什么HashMap中链表长度超过8会转换成红黑树](#18-为什么hashmap中链表长度超过8会转换成红黑树)auto- [ConcurrentHashMap](#concurrenthashmap)auto- [ArrayList](#arraylist)auto- [LinkedList](#linkedlist)auto- [Hashtable](#hashtable)auto- [HashSet](#hashset)auto- [LinkedHashMap](#linkedhashmap)auto- [LinkedHashSet](#linkedhashset)auto- [红黑树](#红黑树)auto    - [红黑树的特性](#红黑树的特性)auto    - [数据结构](#数据结构)auto    - [红黑树的三个基本操作](#红黑树的三个基本操作)autoauto<!-- /TOC -->
+<!-- TOC -->
+
+- [是否允许空值](#是否允许空值)
+- [是否有序](#是否有序)
+- [ArrayList和LinkedList区别](#arraylist和linkedlist区别)
+    - [时间复杂度](#时间复杂度)
+- [HashMap（重要）](#hashmap重要)
+    - [1.8 为什么HashMap中链表长度超过8会转换成红黑树](#18-为什么hashmap中链表长度超过8会转换成红黑树)
+- [ConcurrentHashMap](#concurrenthashmap)
+- [ArrayList](#arraylist)
+- [LinkedList](#linkedlist)
+- [Hashtable](#hashtable)
+- [HashSet](#hashset)
+- [LinkedHashMap](#linkedhashmap)
+- [LinkedHashSet](#linkedhashset)
+- [红黑树](#红黑树)
+    - [红黑树的特性](#红黑树的特性)
+    - [数据结构](#数据结构)
+    - [红黑树的三个基本操作](#红黑树的三个基本操作)
+
+<!-- /TOC -->
+
 # 是否允许空值
 * **List** 集合可以存储多个null；
 * **Set**集合也可以存储null，但只能存储一个；
 * **HashMap**可以存储null键值对，键和值都可以是null，但如果添加的键值对的键相同，则后面添加的键值对会覆盖前面的键值对，即之后存储后添加的键值对；
-* **Hashtable**不能添加null，抛空指针    
+* **Hashtable**不能添加null，抛空指针
 
 [toTop](#jump)
 
@@ -266,4 +287,4 @@ private void flipColors(Node h){
 
 [toTop](#jump)
 
----
+
