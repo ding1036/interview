@@ -3,6 +3,12 @@
 
 - [AOP](#aop)
     - [AOP执行顺序](#aop执行顺序)
+- [IOC](#ioc)
+    - [IOC注入方式](#ioc注入方式)
+    - [IoC容器](#ioc容器)
+        - [BeanFactory](#beanfactory)
+        - [ApplicationContext](#applicationcontext)
+    - [IoC容器的初始化](#ioc容器的初始化)
     - [JDK代理和CGLIB代理](#jdk代理和cglib代理)
 - [@ControllerAdvice + @ExceptionHandler 全局处理 Controller 层异常](#controlleradvice--exceptionhandler-全局处理-controller-层异常)
 - [Spring MVC Controller单例还是多例](#spring-mvc-controller单例还是多例)
@@ -117,7 +123,91 @@ public class Aspect2 {
 
 参考1 ：[Spring AOP @Before @Around @After 等 advice 的执行顺序](https://blog.csdn.net/rainbow702/article/details/52185827)
 
+例子
+
+```java
+@Aspect
+@Component("maintainHistoryAspect")
+public class MaintainHistoryAspect {
+
+@Before("execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.update*(..)) &&  args(resourcesList,request,..)")
+	public void appendUpdateListInfo(List<Resources> resourcesList,HttpServletRequest request) {
+		
+	}
+}
+
+@Before("(execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.add*(..))) &&  args(database,..)" +
+			"|| (execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.updateResource*(..))) &&  args(database,..)")
+	public void encodePasswordInfo(Database database) {
+		
+	}
+
+@AfterReturning(value="execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.get*(..)) &&  args(database,..)",
+			returning="result")
+	public void decodePasswordInfo(Database database,Object result) {
+		try {
+			if (result instanceof Database) {
+				Database resultVO = (Database) result;
+				resultVO.setPassword(XXX));
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+	}    
+
+```
+
 [toTop](#jump)
+
+# IOC
+
+## IOC注入方式
+
+1) 接口注入。从注入方式的使用上来说，接口注入是现在不甚提倡的一种方式，基本处于“退
+役状态”。因为它强制被注入对象实现不必要的接口，带有侵入性。
+
+2) 构造方法注入。
+优点:对象在构造完成之后，即已进入就绪状态，可以马上使用。
+缺点:当**依赖对象比较多的时候，构造方法的参数列表会比较长**。而通过反
+射构造对象的时候，对相同类型的参数的处理会比较困难，维护和使用上也比较麻烦。而且
+在Java中，构造方法无法被继承，无法设置默认值。对于非必须的依赖处理，可能需要引入多个构造方法，而参数数量的变动可能造成维护上的不便。
+
+3) setter方法注入。因为方法可以命名，所以setter方法注入在描述性上要比构造方法注入好一些。 另外，setter方法可以被继承，允许设置默认值，而且有良好的IDE支持。缺点当然就是**对象无法在构造完成后马上进入就绪状态**。
+
+
+## IoC容器
+
+Spring中提供了两种IoC容器：
+
+1) BeanFactory
+2) ApplicationContext
+
+`ApplicationContext`是`BeanFactory`的子类
+
+### BeanFactory
+基础类型IoC容器，默认采用延迟初始化策略`lazy-load`。**只有当客户端对象需要访问容器中的某个受管对象的时候，才对该受管对象进行初始化以及依赖注入操作**。
+适合场景： 容器启动初期速度较快，所需要的资源有限。对于资源有限，并且功能要求不是很严格的场景
+
+### ApplicationContext
+ApplicationContext在BeanFactory的基础上构建，除了拥有BeanFactory的所有支持，ApplicationContext还提供了其他高级特性
+1.  支持信息源，可以实现国际化。（实现MessageSource接口）
+2.  访问资源。(实现ResourcePatternResolver接口)
+3.  支持应用事件。(实现ApplicationEventPublisher接口)
+
+`ApplicationContext`所管理的对象，在该类型容器启动之后，**默认全部初始化并绑定完成**。所以，相对于`BeanFactory`来说，`ApplicationContext`要求更多的系统资源，同时，因为在启动时就完成所有初始化，容器**启动时间较之BeanFactory也会长一些**。
+适合场景： 在那些系统资源充足，并且要求更多功能的场景中
+
+
+## IoC容器的初始化
+ IoC容器的初始化包括BeanDefinition的Resource定位、载入和注册这三个基本的过程。
+
+
+
+参考1 : [Spring IOC原理解读 面试必读](https://blog.csdn.net/qq_34173549/article/details/79929071)
+
+参考1 : [细说Spring——IoC详解](https://www.jianshu.com/p/4007079cb6c0)
+[toTop](#jump)
+
 
 ## JDK代理和CGLIB代理
 
