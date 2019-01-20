@@ -20,6 +20,11 @@
     - [解决Hash冲突](#解决hash冲突)
     - [如何避免泄漏](#如何避免泄漏)
     - [总结](#总结)
+- [守护线程与普通线程](#守护线程与普通线程)
+- [String StringBuffer StringBuilder](#string-stringbuffer-stringbuilder)
+    - [String](#string)
+    - [StringBuffer](#stringbuffer)
+    - [StringBuilder](#stringbuilder)
 
 <!-- /TOC -->
 
@@ -584,3 +589,39 @@ ThreadLocalMap解决Hash冲突的方式就是简单的步长加1或减1，寻找
 
 
 [toTop](#jump) 
+
+# 守护线程与普通线程
+
+守护线程与普通线程的唯一区别是：当JVM中所有的线程都是守护线程的时候，JVM就可以退出了；如果还有一个或以上的非守护线程则不会退出。（以上是针对正常退出，调用System.exit则必定会退出）   
+
+setDeamon(true)的唯一意义就是告诉JVM不需要等待它退出
+守护线程在没有用户线程可服务时自动离开，在Java中比较特殊的线程是被称为守护（Daemon）线程的低级别线程。这个线程具有最低的优先级，用于为系统中的其它对象和线程提供服务。
+我们所熟悉的Java垃圾回收线程就是一个典型的守护线程
+
+[toTop](#jump) 
+
+# String StringBuffer StringBuilder
+## String
+1、String 类是一个final 修饰的类所以这个类是不能继承的，也就没有子类。
+
+2、String 类的成员变量都是final类型的并且没有提供任何方法可以来修改引用变量所引用的对象的内容，所以一旦这个对象被创建并且成员变量初始化后这个对象就不能再改变了，所以说String 对象是一个不可变对象。
+
+3、使用“+”连接字符串的过程产生了很多String 对象和StringBuffer 对象所以效率相比直接使用StringBuffer 对象的append（） 方法来连接字符效率低很多。
+
+4、引用变量是存在java虚拟机栈内存中的，它里面存放的不是对象，而是对象的地址或句柄地址。
+
+5、对象是存在java heap(堆内存)中的值
+
+6、引用变量的值改变指的是栈内存中的这个引用变量的值的改变是，对象地址的改变或句柄地址的改变，而对象的改变指的是存放在Java heap（堆内存）中的对象内容的改变和引用变量的地址和句柄没有关系。
+
+## StringBuffer
+1、StringBuffer 类被final 修饰所以不能继承没有子类
+
+2、StringBuffer 对象是可变对象，因为父类的 value [] char 没有被final修饰所以可以进行引用的改变，而且还提供了方法可以修改被引用对象的内容即修改了数组内容。
+
+3、在使用StringBuffer对象的时候尽量指定大小这样会减少扩容的次数，也就是会减少创建字符数组对象的次数和数据复制的次数，当然效率也会提升。
+
+4.线程安全，涉及到synchronized 
+
+## StringBuilder
+基本和StringBuffer相同，但是不是线程安全
