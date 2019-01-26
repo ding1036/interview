@@ -1,28 +1,35 @@
 <a id = "jump">[返回首页](/README.md)</a>
 
 <!-- TOC -->
-- [Collection_Map](#collectionmap)
-- [是否允许空值](#%E6%98%AF%E5%90%A6%E5%85%81%E8%AE%B8%E7%A9%BA%E5%80%BC)
-- [是否有序](#%E6%98%AF%E5%90%A6%E6%9C%89%E5%BA%8F)
-- [ArrayList和LinkedList区别](#arraylist%E5%92%8Clinkedlist%E5%8C%BA%E5%88%AB)
-  - [时间复杂度](#%E6%97%B6%E9%97%B4%E5%A4%8D%E6%9D%82%E5%BA%A6)
-- [HashMap](#hashmap)
-- [ConcurrentHashMap](#concurrenthashmap)
-- [ArrayList](#arraylist)
-- [LinkedList](#linkedlist)
-- [Vector](#vector)
-- [TreeMap](#treemap)
-- [Hashtable](#hashtable)
-- [HashSet](#hashset)
-- [LinkedHashMap](#linkedhashmap)
-- [LinkedHashSet](#linkedhashset)
-- [TreeSet](#treeset)
-- [红黑树](#%E7%BA%A2%E9%BB%91%E6%A0%91)
-  - [红黑树的特性](#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E7%89%B9%E6%80%A7)
-  - [数据结构](#%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84)
-  - [红黑树的三个基本操作](#%E7%BA%A2%E9%BB%91%E6%A0%91%E7%9A%84%E4%B8%89%E4%B8%AA%E5%9F%BA%E6%9C%AC%E6%93%8D%E4%BD%9C)
 
-# Collection_Map
+- [Collection & Map概述](#collectionmap)
+  - [是否允许空值](#是否允许空值)
+  - [是否允许空值](#是否有序)
+- [List](##)
+  - [Vector](#vector)
+  - [ArrayList](#arraylist)
+  - [LinkedList](#linkedlist)
+  - [ArrayList和LinkedList区别](#ArrayList和LinkedList区别)
+    - [时间复杂度](#时间复杂度)
+- [Queue](##)
+  - [Deque](##)
+  - [PriorityQueue](##)
+- [Set](##)
+  - [HashSet](#hashset)
+    - [LinkedHashSet](#linkedhashset)
+  - [TreeSet](#treeset)
+- [Map](##)
+  - [Hashtable](#hashtable)
+  - [HashMap](#hashmap)
+    - [为什么HashMap中链表长度超过8会转换成红黑树](#为什么HashMap中链表长度超过8会转换成红黑树)
+    - [LinkedHashMap](#linkedhashmap)
+  - [TreeMap](#treemap)
+- [Concurrent](##)
+  - [ConcurrentHashMap](#concurrenthashmap)
+- [其它常见数据结构](##)
+  - [红黑树](#红黑树)
+
+# Collection,Map
 
 * 集合类图：
 
@@ -89,6 +96,24 @@
 3) HashMap在底层将key-value当成一个整体进行处理，这个整体就是一个Node对象。HashMap底层采用一个Node[]数组来保存所有的key-value对，当需要存储一个Node对象时，会根据key的hash算法来决定其在数组中的存储位置，在根据equals方法决定其在该数组位置上的链表中的存储位置；当需要取出一个Node时，也会根据key的hash算法找到其在数组中的存储位置，再根据equals方法从该位置上的链表中取出该Node。
 4) HashMap进行数组扩容需要重新计算扩容后每个元素在数组中的位置，很耗性能
 5) 采用了Fail-Fast机制，通过一个modCount值记录修改次数，对HashMap内容的修改都将增加这个值。迭代器初始化过程中会将这个值赋给迭代器的expectedModCount，在迭代过程中，判断modCount跟expectedModCount是否相等，如果不相等就表示已经有其他线程修改了Map，马上抛出异常
+
+参考1 : [深入Java集合学习系列：HashMap的实现原理](http://zhangshixi.iteye.com/blog/672697)
+
+参考2 : [JDK1.8 HashMap源码分析](https://blog.csdn.net/lizhongkaide/article/details/50595719)
+
+参考3 :[Java 8系列之重新认识HashMap](https://tech.meituan.com/java-hashmap.html)
+
+[toTop](#jump)
+
+# 为什么HashMap中链表长度超过8会转换成红黑树
+
+HashMap在jdk1.8之后引入了红黑树的概念，表示若桶中链表元素超过8时，会自动转化成红黑树；若桶中元素小于等于6时，树结构还原成链表形式。
+
+* 原因：
+红黑树的平均查找长度是log(n)，长度为8，查找长度为log(8)=3，链表的平均查找长度为n/2，当长度为8时，平均查找长度为8/2=4，这才有转换成树的必要；链表长度如果是小于等于6，6/2=3，虽然速度也很快的，但是转化为树结构和生成树的时间并不会太短。
+
+* 还有选择6和8的原因是：
+中间有个差值7可以防止链表和树之间频繁的转换。假设一下，如果设计成链表个数超过8则链表转换成树结构，链表个数小于8则树结构转换成链表，如果一个HashMap不停的插入、删除元素，链表个数在8左右徘徊，就会频繁的发生树转链表、链表转树，效率会很低。
 
 参考1 : [深入Java集合学习系列：HashMap的实现原理](http://zhangshixi.iteye.com/blog/672697)
 
