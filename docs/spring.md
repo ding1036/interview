@@ -3,6 +3,12 @@
 
 - [AOP](#aop)
     - [AOP执行顺序](#aop执行顺序)
+- [IOC](#ioc)
+    - [IOC注入方式](#ioc注入方式)
+    - [IoC容器](#ioc容器)
+        - [BeanFactory](#beanfactory)
+        - [ApplicationContext](#applicationcontext)
+    - [IoC容器的初始化](#ioc容器的初始化)
     - [JDK代理和CGLIB代理](#jdk代理和cglib代理)
 - [@ControllerAdvice + @ExceptionHandler 全局处理 Controller 层异常](#controlleradvice--exceptionhandler-全局处理-controller-层异常)
 - [Spring MVC Controller单例还是多例](#spring-mvc-controller单例还是多例)
@@ -11,6 +17,8 @@
 - [SpringMVC的拦截器（Interceptor）和过滤器（Filter）的区别与联系](#springmvc的拦截器interceptor和过滤器filter的区别与联系)
     - [过滤器](#过滤器)
     - [拦截器](#拦截器)
+    - [过滤器和拦截器的区别：](#过滤器和拦截器的区别)
+    - [触发时机](#触发时机)
 
 <!-- /TOC -->
 
@@ -115,7 +123,91 @@ public class Aspect2 {
 
 参考1 ：[Spring AOP @Before @Around @After 等 advice 的执行顺序](https://blog.csdn.net/rainbow702/article/details/52185827)
 
+例子
+
+```java
+@Aspect
+@Component("maintainHistoryAspect")
+public class MaintainHistoryAspect {
+
+@Before("execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.update*(..)) &&  args(resourcesList,request,..)")
+	public void appendUpdateListInfo(List<Resources> resourcesList,HttpServletRequest request) {
+		
+	}
+}
+
+@Before("(execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.add*(..))) &&  args(database,..)" +
+			"|| (execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.updateResource*(..))) &&  args(database,..)")
+	public void encodePasswordInfo(Database database) {
+		
+	}
+
+@AfterReturning(value="execution(public * com.mc.dbra.web.service.impl..*.*ServiceImpl.get*(..)) &&  args(database,..)",
+			returning="result")
+	public void decodePasswordInfo(Database database,Object result) {
+		try {
+			if (result instanceof Database) {
+				Database resultVO = (Database) result;
+				resultVO.setPassword(XXX));
+			}
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+		}
+	}    
+
+```
+
 [toTop](#jump)
+
+# IOC
+
+## IOC注入方式
+
+1) 接口注入。从注入方式的使用上来说，接口注入是现在不甚提倡的一种方式，基本处于“退
+役状态”。因为它强制被注入对象实现不必要的接口，带有侵入性。
+
+2) 构造方法注入。
+优点:对象在构造完成之后，即已进入就绪状态，可以马上使用。
+缺点:当**依赖对象比较多的时候，构造方法的参数列表会比较长**。而通过反
+射构造对象的时候，对相同类型的参数的处理会比较困难，维护和使用上也比较麻烦。而且
+在Java中，构造方法无法被继承，无法设置默认值。对于非必须的依赖处理，可能需要引入多个构造方法，而参数数量的变动可能造成维护上的不便。
+
+3) setter方法注入。因为方法可以命名，所以setter方法注入在描述性上要比构造方法注入好一些。 另外，setter方法可以被继承，允许设置默认值，而且有良好的IDE支持。缺点当然就是**对象无法在构造完成后马上进入就绪状态**。
+
+
+## IoC容器
+
+Spring中提供了两种IoC容器：
+
+1) BeanFactory
+2) ApplicationContext
+
+`ApplicationContext`是`BeanFactory`的子类
+
+### BeanFactory
+基础类型IoC容器，默认采用延迟初始化策略`lazy-load`。**只有当客户端对象需要访问容器中的某个受管对象的时候，才对该受管对象进行初始化以及依赖注入操作**。
+适合场景： 容器启动初期速度较快，所需要的资源有限。对于资源有限，并且功能要求不是很严格的场景
+
+### ApplicationContext
+ApplicationContext在BeanFactory的基础上构建，除了拥有BeanFactory的所有支持，ApplicationContext还提供了其他高级特性
+1.  支持信息源，可以实现国际化。（实现MessageSource接口）
+2.  访问资源。(实现ResourcePatternResolver接口)
+3.  支持应用事件。(实现ApplicationEventPublisher接口)
+
+`ApplicationContext`所管理的对象，在该类型容器启动之后，**默认全部初始化并绑定完成**。所以，相对于`BeanFactory`来说，`ApplicationContext`要求更多的系统资源，同时，因为在启动时就完成所有初始化，容器**启动时间较之BeanFactory也会长一些**。
+适合场景： 在那些系统资源充足，并且要求更多功能的场景中
+
+
+## IoC容器的初始化
+ IoC容器的初始化包括BeanDefinition的Resource定位、载入和注册这三个基本的过程。
+
+
+
+参考1 : [Spring IOC原理解读 面试必读](https://blog.csdn.net/qq_34173549/article/details/79929071)
+
+参考1 : [细说Spring——IoC详解](https://www.jianshu.com/p/4007079cb6c0)
+[toTop](#jump)
+
 
 ## JDK代理和CGLIB代理
 
@@ -287,6 +379,18 @@ SpringMVC核心处理流程：
 4) 根据需要修改response头和response数据;
 5) 在servlet被调用之后截获.
 
+```java
+
+ @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        System.out.println("before...");
+        chain.doFilter(request, response);
+        System.out.println("after...");
+    }
+```
+
+chain.doFilter(request, response);这个方法的调用作为分水岭。事实上调用Servlet的doService()方法是在chain.doFilter(request, response);这个方法中进行的。
+
 ## 拦截器
 
 拦截器不依赖与servlet容器，**依赖于web框架**，在SpringMVC中就是依赖于SpringMVC框架。在实现上**基于Java的反射机制**，属于面向切面编程（AOP）的一种运用。由于拦截器是基于web框架的调用，因此可以使用spring的依赖注入（DI）获取IOC容器中的各个bean,进行一些业务操作，同时一个拦截器实例在一个controller生命周期之内**可以多次调用**。但是缺点是**只能对controller请求进行拦截**，
@@ -295,6 +399,68 @@ SpringMVC核心处理流程：
 3) 结束视图渲染，但是还没有到servlet的结束时进行拦截。对其他的一些比如直接访问静态资源的请求则没办法进行拦截处理,拦截器功在对请求权限鉴定方面确实很有用处
 
 ![](/img/filterAndIntercept.png)
+
+```java
+
+ @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        System.out.println("preHandle");
+        return true;
+    }
+
+    @Override
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+        System.out.println("postHandle");
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        System.out.println("afterCompletion");
+    }
+```
+
+　a.preHandle()这个方法是在过滤器的chain.doFilter(request, response)方法的前一步执行，也就是在 [System.out.println("before...")][chain.doFilter(request, response)]之间执行。
+
+ 
+
+　　b.preHandle()方法之后，在return ModelAndView之前进行，可以操控Controller的ModelAndView内容。
+
+ 
+
+　　c.afterCompletion()方法是在过滤器返回给前端前一步执行，也就是在[chain.doFilter(request, response)][System.out.println("after...")]之间执行。
+
+## 过滤器和拦截器的区别：
+
+1) 拦截器是基于java的反射机制的，而过滤器是基于函数回调。
+
+2) 拦截器不依赖与servlet容器，过滤器依赖与servlet容器。
+
+3) 拦截器只能对action请求起作用，而过滤器则可以对几乎所有的请求起作用。
+
+4) 拦截器可以访问action上下文、值栈里的对象，而过滤器不能访问。
+
+5) 在action的生命周期中，拦截器可以多次被调用，而过滤器只能在容器初始化时被调用一次。
+
+6) 拦截器可以获取IOC容器中的各个bean，而过滤器就不行，这点很重要，在拦截器里注入一个service，可以调用业务逻辑。
+
+拦截器可以获取ioc中的service bean实现业务逻辑，拦截器可以获取ioc中的service bean实现业务逻辑，拦截器可以获取ioc中的service bean实现业务逻辑，
+
+
+## 触发时机
+过滤器是在请求进入容器后，但请求进入servlet之前进行预处理的。请求结束返回也是，是在servlet处理完后，返回给前端之前。
+
+过滤器的触发时机是容器后，servlet之前，所以过滤器的
+```java
+doFilter(
+ServletRequest request, ServletResponse response, FilterChain chain
+)
+```
+
+的入参是ServletRequest ，而不是httpservletrequest。因为过滤器是在httpservlet之前。
+![](/img/filter.png)
+
+![](/img/filterAndIntercept2.png)
+
 
 参考 1 :[spring过滤器和拦截器的区别和联系](https://www.cnblogs.com/nizuimeiabc1/p/6774073.html)
 
