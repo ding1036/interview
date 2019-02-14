@@ -2,7 +2,6 @@
 
 <!-- TOC -->
 
-- [MyISAM和innerDB区别](#myisam和innerdb区别)
 - [数据库优化](#数据库优化)
     - [索引优化](#索引优化)
         - [独立的列](#独立的列)
@@ -24,25 +23,11 @@
             - [分区的优点](#分区的优点)
             - [分区的限制：](#分区的限制)
         - [分表](#分表)
-- [mysql千万级大表在线加索引（待验证是否可行）](#mysql千万级大表在线加索引待验证是否可行)
 
 <!-- /TOC -->
 
 
-# MyISAM和innerDB区别
-* 事务：InnoDB 是事务型的，可以使用 Commit 和 Rollback 语句。
 
-* 并发：MyISAM 只支持表级锁，而 InnoDB 还支持行级锁。
-
-* 外键：InnoDB 支持外键。
-
-* 备份：InnoDB 支持在线热备份。
-
-* 崩溃恢复：MyISAM 崩溃后发生损坏的概率比 InnoDB 高很多，而且恢复的速度也更慢。
-
-* 其它特性：MyISAM 支持压缩表和空间数据索引。
-
-[toTop](#jump)
 
 # 数据库优化
 
@@ -124,10 +109,6 @@ SELECT * FROM tag WHERE tag='mysql';
 SELECT * FROM tag_post WHERE tag_id=1234;
 SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);
 ```
-
-
-[toTop](#jump)
-
 
 
 # 数据库分区分表
@@ -249,21 +230,5 @@ PARTITIONS 3;
 
 参考 2 :[数据库的分区分库分表，水平切分与垂直切分](https://blog.csdn.net/weixin_39684625/article/details/79527739)
 
-
-[toTop](#jump)
-
-# mysql千万级大表在线加索引（待验证是否可行）
-
-```sql
-create table tmp like paper_author;
-
-ALTER TABLE tmp ADD INDEX ( `PaperID` );
-
-insert into tmp(ooo，...)  select  ooo,... from paper_author;
-
-RENAME TABLE paper_author TO tmp2, tmp to paper_author;
-
-drop table tmp2;
-```
 
 [toTop](#jump)
