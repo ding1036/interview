@@ -19,6 +19,8 @@
 ## 数据库
 
 * [数据库基础](docs/database.md)
+* [mysql](docs/mysql.md)
+* [oracle](docs/oracle.md)
 * [mybatis](docs/mybatis.md)
 
 ## 中间件

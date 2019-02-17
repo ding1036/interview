@@ -23,9 +23,14 @@
             - [分区的优点](#分区的优点)
             - [分区的限制：](#分区的限制)
         - [分表](#分表)
+- [索引](#索引)
+    - [建立，修改，重建，删除语句](#建立修改重建删除语句)
+    - [索引失效](#索引失效)
 
 <!-- /TOC -->
 
+[mysql相关](mysql.md)
+[oracle相关](oracle.md)
 
 
 
@@ -110,6 +115,7 @@ SELECT * FROM tag_post WHERE tag_id=1234;
 SELECT * FROM post WHERE post.id IN (123,456,567,9098,8904);
 ```
 
+[toTop](#jump)
 
 # 数据库分区分表
 
@@ -232,3 +238,78 @@ PARTITIONS 3;
 
 
 [toTop](#jump)
+
+# 索引
+
+## 建立，修改，重建，删除语句
+
+* MYSQL
+
+创建
+```sql
+alter table table_name add index index_name (column_list) ;
+alter table table_name add unique (column_list) ;
+alter table table_name add primary key (column_list) ;
+create index index_name on table_name 列名;
+create unique index index_name on table_name 列名;
+```
+删除
+```sql
+drop index index_name on table_name ;
+alter table table_name drop index index_name ;
+alter table table_name drop primary key ;
+```
+
+修改
+```sql
+--先删除
+
+ALTER TABLE table_name DROP INDEX index_name;
+
+--再以修改后的内容创建同名索引
+
+CREATE INDEX index_name ON table_name;
+```
+
+## 索引失效
+
+ 1．隐式转换导致索引失效.这一点应当引起重视.也是开发中经常会犯的错误.
+ 由于表的字段tu_mdn定义为``varchar2(20)``,但在查询时把该字段作为``number``类型以where条件传给Oracle,这样会导致索引失效.
+ ```sql
+ 错误的例子：select * from test where tu_mdn=13333333333;
+ 正确的例子：select * from test where tu_mdn='13333333333';
+ ```
+ 2. 对索引列进行运算导致索引失效,我所指的对索引列进行运算包括(+，-，*，/，! 等)
+ ```sql
+ 错误的例子：select * from test where id-1=9;
+ 正确的例子：select * from test where id=10;
+ ```
+ 3. 使用Oracle内部函数导致索引失效.对于这样情况应当创建基于函数的索引.
+ 错误的例子：
+```sql
+ select * from test where round(id)=10;
+ 说明，此时id的索引已经不起作用了
+ 正确的例子：首先建立函数索引，
+ create index test_id_fbi_idx on test(round(id));
+ 然后 
+ select * from test where round(id)=10; 
+ ```
+ 这时函数索引起作用了
+ 4. 以下使用会使索引失效，应避免使用；
+ a. 使用 <> 、not in 、not exist、!=
+ b. like "%_" 百分号在前（可采用在建立索引时用reverse(columnName)这种方法处理）
+ c. 单独引用复合索引里非第一位置的索引列.应总是使用索引的第一个列，如果索引是建立在多个列上, 只有在它的第一个列被where子句引用时，优化器才会选择使用该索引。
+ d. 字符型字段为数字时在where条件里不添加引号.
+ e. 当变量采用的是times变量，而表的字段采用的是date变量时.或相反情况。
+ 5. 不要将空的变量值直接与比较运算符（符号）比较。
+ 如果变量可能为空，应使用 IS NULL 或 IS NOT NULL 进行比较，或者使用 ISNULL 函数。
+ 6. 不要在 SQL 代码中使用双引号。
+ 因为字符常量使用单引号。如果没有必要限定对象名称，可以使用（非 ANSI SQL 标准）括号将名称括起来。
+ 7. 将索引所在表空间和数据所在表空间分别设于不同的磁盘chunk上，有助于提高索引查询的效率。
+ 8. Oracle默认使用的基于代价的SQL优化器（CBO）非常依赖于统计信息，一旦统计信息不正常，会导致数据库查询时不使用索引或使用错误的索引。
+ 一般来说，Oracle的自动任务里面会包含更新统计信息的语句，但如果表数据发生了比较大的变化（超过20%）,可以考虑立即手动更新统计信息，例如：analyze table abc compute statistics，但注意，更新   统计信息比较耗费系统资源，建议在系统空闲时执行。
+ 9. Oracle在进行一次查询时，一般对一个表只会使用一个索引.
+ 因此，有时候过多的索引可能导致Oracle使用错误的索引，降低查询效率。例如某表有索引1（Policyno）和索引2（classcode），如果查询条件为policyno = ‘xx’ and classcode = ‘xx’，则系统有可能会使用索   引2，相较于使用索引1，查询效率明显降低。
+ 10. 优先且尽可能使用分区索引。
+
+
