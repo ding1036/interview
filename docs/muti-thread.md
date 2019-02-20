@@ -4,6 +4,7 @@
 
 - [线程池](#线程池)
     - [四种线程池](#四种线程池)
+    - [四种拒绝策略](#四种拒绝策略)
 - [CountDownLatch CyclicBarrier Semaphore Exchange](#countdownlatch-cyclicbarrier-semaphore-exchange)
     - [CountDownLatch](#countdownlatch)
     - [CyclicBarrier](#cyclicbarrier)
@@ -76,6 +77,53 @@ public static ExecutorService newFixedThreadPool(int nThreads){
 public static ExecutorService newSingleThreadExecutor(){
     return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 }
+```
+
+## 四种拒绝策略
+
+1) CallerRunsPolicy：线程调用运行该任务的 execute 本身。此策略提供简单的反馈控制机制，能够减缓新任务的提交速度。
+```java
+public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+     if (!e.isShutdown()){
+          r.run(); 
+          }
+      }
+```
+这个策略显然不想放弃执行任务。但是由于池中已经没有任何资源了，那么就直接使用调用该execute的线程本身来执行。
+2) AbortPolicy：处理程序遭到拒绝将抛出运行时异常 RejectedExecutionException
+```java
+public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+    throw new RejectedExecutionException();
+    }
+```
+这种策略直接抛出异常，丢弃任务。（jdk默认策略，队列满并线程满时直接拒绝添加新任务，并抛出异常，所以说有时候放弃也是一种勇气，为了保证后续任务的正常进行，丢弃一些也是可以接收的，记得做好记录）
+3) DiscardPolicy：不能执行的任务将被删除
+```java
+public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {}
+```
+这种策略和AbortPolicy几乎一样，也是丢弃任务，只不过他不抛出异常。
+4) DiscardOldestPolicy：如果执行程序尚未关闭，则位于工作队列头部的任务将被删除，然后重试执行程序（如果再次失败，则重复此过程）
+```java
+public void rejectedExecution(Runnable r, ThreadPoolExecutor e) { 
+    if (!e.isShutdown()) {
+        e.getQueue().poll();e.execute(r); 
+        }
+    }
+```
+该策略就稍微复杂一些，在pool没有关闭的前提下首先丢掉缓存在队列中的最早的任务，然后重新尝试运行该任务。这个策略需要适当小心。
+
+```java
+//默认，队列满了丢任务抛出异常
+RejectedExecutionHandler rejected = new ThreadPoolExecutor.AbortPolicy();
+
+//队列满了丢任务不异常
+RejectedExecutionHandler rejected = new ThreadPoolExecutor.DiscardPolicy();
+
+//将最早进入队列的任务删，之后再尝试加入队列
+RejectedExecutionHandler rejected = new ThreadPoolExecutor.DiscardOldestPolicy();
+
+//如果添加到线程池失败，那么主线程会自己去执行该任务
+RejectedExecutionHandler rejected = new ThreadPoolExecutor.CallerRunsPolicy();
 ```
 
 [toTop](#jump)

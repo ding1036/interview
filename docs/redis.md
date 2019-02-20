@@ -17,12 +17,14 @@
 - [redis为什么要设计成单线程](#redis为什么要设计成单线程)
 - [Redis实现Session共享](#redis实现session共享)
 - [Redis 的过期策略和内存淘汰机制](#redis-的过期策略和内存淘汰机制)
-    - [Redis 采用的是定期删除+惰性删除策略](#redis-采用的是定期删除惰性删除策略)
-    - [采用定期删除+惰性删除就没其他问题了么](#采用定期删除惰性删除就没其他问题了么)
 - [Redis 和数据库双写一致性问题](#redis-和数据库双写一致性问题)
 - [如何解决 Redis 的并发竞争 Key 问题](#如何解决-redis-的并发竞争-key-问题)
-    - [如果对这个 Key 操作，不要求顺序](#如果对这个-key-操作不要求顺序)
-    - [如果对这个 Key 操作，要求顺序](#如果对这个-key-操作要求顺序)
+- [Redis基本类型及应用](#redis基本类型及应用)
+    - [String](#string)
+    - [List](#list)
+    - [Hash](#hash)
+    - [Set](#set)
+    - [ZSet](#zset)
 
 <!-- /TOC -->
 
@@ -336,13 +338,13 @@ redis用单线程也不是没有问题。有一个很明显的问题就是。当
 
 # Redis 的过期策略和内存淘汰机制
 
-## Redis 采用的是定期删除+惰性删除策略
-定时删除，用一个定时器来负责监视 Key，过期则自动删除。虽然内存及时释放，但是十分消耗 CPU 资源。在大并发请求下，CPU 要将时间应用在处理请求，而不是删除 Key，因此没有采用这一策略。
+* Redis 采用的是定期删除+惰性删除策略
+1) 定时删除，用一个定时器来负责监视 Key，过期则自动删除。虽然内存及时释放，但是十分消耗 CPU 资源。在大并发请求下，CPU 要将时间应用在处理请求，而不是删除 Key，因此没有采用这一策略。
 
-定期删除：Redis 默认每个 100ms 检查，有过期 Key 则删除。需要说明的是，Redis 不是每个 100ms 将所有的 Key 检查一次，而是随机抽取进行检查。
+2) 定期删除：Redis 默认每个 100ms 检查，有过期 Key 则删除。需要说明的是，Redis 不是每个 100ms 将所有的 Key 检查一次，而是随机抽取进行检查。
 惰性删除：放任键过期不管，但是每次从键空间中获取键时，都检查取得的键是否过期，如果过期的话，就删除该键；如果没有过期，那就返回该键；
 
-## 采用定期删除+惰性删除就没其他问题了么
+* 采用定期删除+惰性删除就没其他问题了么
 不是的，如果定期删除没删除掉 Key。并且你也没及时去请求 Key，也就是说惰性删除也没生效。这样，Redis 的内存会越来越高。那么就应该采用内存淘汰机制。
 在 redis.conf 中有一行配置
 
@@ -379,10 +381,10 @@ maxmemory-policy volatile-lru
 
 并不推荐使用 Redis 的事务机制。**因为我们的生产环境，基本都是 Redis 集群环境，做了数据分片操作**。你一个事务中有涉及到多个 Key 操作的时候，这多个 Key 不一定都存储在同一个 redis-server 上。因此，Redis 的事务机制，十分鸡肋。
 
-## 如果对这个 Key 操作，不要求顺序
+* 如果对这个 Key 操作，不要求顺序
 这种情况下，准备一个分布式锁，大家去抢锁，抢到锁就做 set 操作即可，比较简单。
 
-## 如果对这个 Key 操作，要求顺序
+* 如果对这个 Key 操作，要求顺序
 
 假设有一个 key1，系统 A 需要将 key1 设置为 valueA，系统 B 需要将 key1 设置为 valueB，系统 C 需要将 key1 设置为 valueC。
 
@@ -402,4 +404,68 @@ maxmemory-policy volatile-lru
 
 参考 1 ：[为什么我们做分布式要用 Redis](https://mp.weixin.qq.com/s?__biz=MzUzMTA2NTU2Ng==&mid=2247485453&idx=1&sn=03079a5c528d6440ca31c72a09f8a202&chksm=fa4977bccd3efeaa7139c0da5bb7febccaf529dae2f9877c835af72b3d00ab4d082f74d86880&mpshare=1&scene=1&srcid=1104HxQYSc9yblXdOfECYZfi#rd)
 
+[toTop](#jump)
+
+
+# Redis基本类型及应用
+
+在互联网公司一般有以下应用：
+String：缓存、限流、计数器、分布式锁、分布式Session
+Hash：存储用户信息、用户主页访问量、组合查询
+List：微博关注人时间轴列表、简单队列
+Set：赞、踩、标签、好友关系
+Zset：排行榜
+
+## String
+字符串对象的底层实现可以是``int``、``raw``、``embstr``（上面的表对应有名称介绍）。**embstr编码是通过调用一次内存分配函数来分配一块连续的空间，而raw需要调用两次**。
+int编码字符串对象和embstr编码字符串对象在一定条件下会转化为raw编码字符串对象。embstr：<=39字节的字符串。int：8个字节的长整型。raw：大于39个字节的字符串。
+
+```
+get：sdsrange---O(n)
+set：sdscpy—O(n)
+create：sdsnew---O(1)
+len：sdslen---O(1)
+```
+
+## List
+List对象的底层实现是``quicklist``（快速列表，是``ziplist`` 压缩列表 和``linkedlist`` 双端链表 的组合）。Redis中的列表支持两端插入和弹出，并可以获得指定位置（或范围）的元素，可以充当数组、队列、栈等。
+
+```
+rpush: listAddNodeHead ---O(1)
+lpush: listAddNodeTail ---O(1)
+push:listInsertNode ---O(1)
+index : listIndex ---O(N)
+pop:ListFirst/listLast ---O(1)
+llen:listLength ---O(N)
+```
+
+## Hash
+Hash对象的底层实现可以是ziplist（压缩列表）或者hashtable（字典或者也叫哈希表）
+Hash对象只有同时满足下面两个条件时，才会使用ziplist（压缩列表）：1.哈希中元素数量小于512个；2.哈希中所有键值对的键和值字符串长度都小于64字节。
+使用链地址法来解决键冲突
+
+## Set
+Set集合对象的底层实现可以是intset（整数集合）或者hashtable（字典或者也叫哈希表）
+intset（整数集合）当一个集合只含有整数，并且元素不多时会使用intset（整数集合）作为Set集合对象的底层实现
+intset底层实现为有序，无重复数组保存集合元素
+
+```
+sadd:intsetAdd---O(1)
+smembers:intsetGetO(1)---O(N)
+srem:intsetRemove---O(N)
+slen:intsetlen ---O(1)
+```
+
+## ZSet
+ZSet有序集合对象底层实现可以是ziplist（压缩列表）或者skiplist（跳跃表）
+当一个有序集合的元素数量比较多或者成员是比较长的字符串时，Redis就使用skiplist（跳跃表）作为ZSet对象的底层实现。
+
+```
+zadd---zslinsert---平均O(logN), 最坏O(N)
+zrem---zsldelete---平均O(logN), 最坏O(N)
+zrank--zslGetRank---平均O(logN), 最坏O(N)
+```
+
+
+参考：[Redis 为何这么快？聊聊它的数据结构](https://mp.weixin.qq.com/s/69xl2yU4B97aQIn1k_Lwqw)
 [toTop](#jump)
