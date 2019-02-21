@@ -24,6 +24,7 @@
         - [加锁顺序（线程按照一定的顺序加锁）](#加锁顺序线程按照一定的顺序加锁)
         - [加锁时限](#加锁时限)
         - [死锁检测](#死锁检测)
+- [happens-before原则](#happens-before原则)
 
 <!-- /TOC -->
 
@@ -132,9 +133,8 @@ CAS有3个操作数，内存值V，旧的预期值A，要修改的新值B。当�
 下面是sun.misc.Unsafe类的compareAndSwapInt()方法的源代码
 
 ```java
-public final native boolean compareAndSwapInt(Object o, long offset,
-                                              int expected,
-                                              int x);
+public final native boolean compareAndSwapInt(
+Object o,long offset,int expected,int x);
 ```
 
 CAS存在的问题
@@ -541,5 +541,20 @@ Thread 2 waits randomly (e.g. 43 millis) before retrying.
 当然，死锁一般要比两个线程互相持有对方的锁这种情况要复杂的多。线程A等待线程B，线程B等待线程C，线程C等待线程D，线程D又在等待线程A。线程A为了检测死锁，它需要递进地检测所有被B请求的锁。从线程B所请求的锁开始，线程A找到了线程C，然后又找到了线程D，发现线程D请求的锁被线程A自己持有着。这是它就知道发生了死锁。
 
 那么当检测出死锁时，一个可行的做法是释放所有锁，回退，并且等待一段随机的时间后重试。这个和简单的加锁超时类似，不一样的是只有死锁已经发生了才回退，而不会是因为加锁的请求超时了。虽然有回退和等待，但是如果有大量的线程竞争同一批锁，它们还是会重复地死锁。
+
+[toTop](#jump)
+
+# happens-before原则
+
+1) 程序次序规则：一个线程内，按照代码顺序，书写在前面的操作先行发生于书写在后面的操作；
+2) 锁定规则：一个unLock操作先行发生于后面对同一个锁额lock操作；
+3) 传递规则：如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C；
+4) 线程启动规则：Thread对象的start()方法先行发生于此线程的每个一个动作；
+5) 线程中断规则：对线程interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生；
+6) 线程终结规则：线程中所有的操作都先行发生于线程的终止检测，我们可以通过Thread.join()方法结束、Thread.isAlive()的返回值手段检测到线程已经终止执行；
+7) 对象终结规则：一个对象的初始化完成先行发生于他的finalize()方法的开始；
+8) volatile变量规则：对一个变量的写操作先行发生于后面对这个变量的读操作；
+
+参考 :[Java内存模型之happens-before](https://mp.weixin.qq.com/s/sr-UlcoBBfyNYSThWhkQqQ)
 
 [toTop](#jump)
