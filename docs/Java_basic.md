@@ -45,6 +45,7 @@
     - [String](#string)
     - [StringBuffer](#stringbuffer)
     - [StringBuilder](#stringbuilder)
+- [反射](#反射)
 
 <!-- /TOC -->
 
@@ -569,5 +570,64 @@ date -d "1970-01-01 UTC `echo "$(date +%s)-$(cat /proc/uptime|cut -f 1 -d' ')+12
 
 [toTop](#jump)
 
+# 反射
+java.lang.reflect.Proxy：这是 Java 动态代理机制的主类，它提供了一组静态方法来为一组接口动态地生成代理类及其对象
 
+java.lang.reflect.InvocationHandler：这是调用处理器接口，它自定义了一个 invoke 方法，用于集中处理在动态代理类对象上的方法调用，通常在该方法中实现对委托类的代理访问。
+
+* 通过 Class 类获取成员变量、成员方法、接口、超类、构造方法等
+
+```java
+//获得类完整的名字
+String className = c2.getName();
+System.out.println(className);//输出com.ys.reflex.Person
+        
+//获得类的public类型的属性。
+Field[] fields = c2.getFields();
+for(Field field : fields){
+   System.out.println(field.getName());//age
+}
+        
+//获得类的所有属性。包括私有的
+Field [] allFields = c2.getDeclaredFields();
+for(Field field : allFields){
+    System.out.println(field.getName());//name    age
+}
+        
+//获得类的public类型的方法。这里包括 Object 类的一些方法
+Method [] methods = c2.getMethods();
+for(Method method : methods){
+    System.out.println(method.getName());//work waid equls toString hashCode等
+}
+        
+//获得类的所有方法。
+Method [] allMethods = c2.getDeclaredMethods();
+for(Method method : allMethods){
+    System.out.println(method.getName());//work say
+}
+        
+//获得指定的属性
+Field f1 = c2.getField("age");
+System.out.println(f1);
+//获得指定的私有属性
+Field f2 = c2.getDeclaredField("name");
+//启用和禁用访问安全检查的开关，值为 true，则表示反射的对象在使用时应该取消 java 语言的访问检查；反之不取消
+f2.setAccessible(true);
+System.out.println(f2);
+                
+//创建这个类的一个对象
+Object p2 =  c2.newInstance();
+//将 p2 对象的  f2 属性赋值为 Bob，f2 属性即为 私有属性 name
+f2.set(p2,"Bob");
+//使用反射机制可以打破封装性，导致了java对象的属性不安全。 
+System.out.println(f2.get(p2)); //Bob
+        
+//获取构造方法
+Constructor [] constructors = c2.getConstructors();
+for(Constructor constructor : constructors){
+    System.out.println(constructor.toString());//public com.ys.reflex.Person()
+}
+```
+
+[toTop](#jump)
 

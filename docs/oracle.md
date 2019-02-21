@@ -6,6 +6,7 @@
 - [oracle触发器类型和出发事件](#oracle触发器类型和出发事件)
 - [触发器启用或者禁用](#触发器启用或者禁用)
 - [视图中使用DML的规定](#视图中使用dml的规定)
+- [分页查询语句](#分页查询语句)
 
 <!-- /TOC -->
 
@@ -86,4 +87,38 @@ vi.中非空的列在视图定义中未包括
 1) 使用 WITH CHECKOPTION 子句确保DML只能在特定的范围内执行
 2) 任何违反WITH CHECKOPTION 约束的请求都会失败
 
+[toTop](#jump)
+
+# 分页查询语句
+
+```sql
+SELECT * FROM  
+(  
+SELECT A.*, ROWNUM RN  
+FROM (SELECT * FROM TABLE_NAME) A  
+WHERE ROWNUM <= 40  
+)  
+WHERE RN >= 21  
+```
+
+```sql
+SELECT * FROM  
+(  
+SELECT A.*, ROWNUM RN  
+FROM (SELECT * FROM TABLE_NAME) A  
+)  
+WHERE RN BETWEEN 21 AND 40  
+```
+绝大多数的情况下，第一个查询的效率比第二个高得多
+
+```sql
+
+select a1.* from 
+  (
+  select student.*,rownum rn 
+  from student 
+  where rownum <=5
+  ) a1 
+where rn >=3;
+```
 [toTop](#jump)
