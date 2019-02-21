@@ -95,6 +95,8 @@
 4) HashMap进行数组扩容需要重新计算扩容后每个元素在数组中的位置，很耗性能
 5) 采用了Fail-Fast机制，通过一个modCount值记录修改次数，对HashMap内容的修改都将增加这个值。迭代器初始化过程中会将这个值赋给迭代器的expectedModCount，在迭代过程中，判断modCount跟expectedModCount是否相等，如果不相等就表示已经有其他线程修改了Map，马上抛出异常
 
+HashMap的put方法,在**jdk1.8之前是插入头部**的，在**jdk1.8中是插入尾部**的
+
 ## 1.8 为什么HashMap中链表长度超过8会转换成红黑树
 
 HashMap在jdk1.8之后引入了红黑树的概念，表示若桶中链表元素超过8时，会自动转化成红黑树；若桶中元素小于等于6时，树结构还原成链表形式。
@@ -112,6 +114,8 @@ HashMap在jdk1.8之后引入了红黑树的概念，表示若桶中链表元素�
 参考2 : [JDK1.8 HashMap源码分析](https://blog.csdn.net/lizhongkaide/article/details/50595719)
 
 参考3 :[Java 8系列之重新认识HashMap](https://tech.meituan.com/java-hashmap.html)
+
+参考3 :[HashMap到底是插入链表头部还是尾部](https://blog.csdn.net/tc_1337/article/details/81700672)
 
 [toTop](#jump)
 
