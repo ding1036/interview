@@ -119,24 +119,6 @@ HashMap在jdk1.8之后引入了红黑树的概念，表示若桶中链表元素�
 
 [toTop](#jump)
 
-# 为什么HashMap中链表长度超过8会转换成红黑树
-
-HashMap在jdk1.8之后引入了红黑树的概念，表示若桶中链表元素超过8时，会自动转化成红黑树；若桶中元素小于等于6时，树结构还原成链表形式。
-
-* 原因：
-红黑树的平均查找长度是log(n)，长度为8，查找长度为log(8)=3，链表的平均查找长度为n/2，当长度为8时，平均查找长度为8/2=4，这才有转换成树的必要；链表长度如果是小于等于6，6/2=3，虽然速度也很快的，但是转化为树结构和生成树的时间并不会太短。
-
-* 还有选择6和8的原因是：
-中间有个差值7可以防止链表和树之间频繁的转换。假设一下，如果设计成链表个数超过8则链表转换成树结构，链表个数小于8则树结构转换成链表，如果一个HashMap不停的插入、删除元素，链表个数在8左右徘徊，就会频繁的发生树转链表、链表转树，效率会很低。
-
-参考1 : [深入Java集合学习系列：HashMap的实现原理](http://zhangshixi.iteye.com/blog/672697)
-
-参考2 : [JDK1.8 HashMap源码分析](https://blog.csdn.net/lizhongkaide/article/details/50595719)
-
-参考3 :[Java 8系列之重新认识HashMap](https://tech.meituan.com/java-hashmap.html)
-
-[toTop](#jump)
-
 # ConcurrentHashMap
 
 1) ConcurrentHashMap允许多个修改操作并发进行，其关键在于使用了锁分离技术。

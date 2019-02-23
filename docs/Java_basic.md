@@ -538,6 +538,8 @@ date -d "1970-01-01 UTC `echo "$(date +%s)-$(cat /proc/uptime|cut -f 1 -d' ')+12
 ![](/img/generic4.png)
 ![](/img/generic5.png)
 
+补充：Array不支持泛型
+
 参考:码出效率6.5节
 
 [toTop](#jump)
