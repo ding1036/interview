@@ -158,6 +158,11 @@ public class MaintainHistoryAspect {
 
 ```
 
+例子1：[https://blog.csdn.net/u010502101/article/details/78823056](https://blog.csdn.net/u010502101/article/details/78823056)
+
+例子2：[spring统一日志管理，切面（@Aspect），注解式日志管理](https://www.cnblogs.com/chihirotan/p/6228337.html)
+
+
 [toTop](#jump)
 
 # IOC
