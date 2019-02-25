@@ -645,7 +645,7 @@ setDeamon(true)的唯一意义就是告诉JVM不需要等待它退出
 
 [toTop](#jump) 
 
-#sleep wait 区别
+# sleep wait 区别
 ``sleep()``方法属于``Thread类``中的。
 ``wait()``方法属于``Object类``中的。
 
