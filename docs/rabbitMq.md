@@ -179,7 +179,7 @@ RabbitMQ提供``transaction``和``confirm``模式来确保生产者不丢消息�
 transaction机制:发送消息前，开启事物``channel.txSelect()``，然后发送消息，如果发送过程中出现什么异常，事物就会回滚``channel.txRollback()``，如果发送成功则提交事物``channel.txCommit()``。
 然而缺点就是**吞吐量下降了**。
 生产上用confirm模式的居多。一旦channel进入confirm模式，所有在该信道上面发布的消息都将会被指派一个唯一的ID(从1开始)，一旦
-消息被投递到所有匹配的队列之后，rabbitMQ就会发送一个``Ack``给生产者(包含消息的唯一ID)，这就使得生产者知道消息已经正确到达目的队列了.如果rabiitMQ没能处理该消息，则会发送一个``unack``消息给你，你可以进行重试操作。
+消息被投递到所有匹配的队列之后，rabbitMQ就会发送一个``Ack``给生产者(包含消息的唯一ID)，这就使得生产者知道消息已经正确到达目的队列了.如果rabiitMQ没能处理该消息，则会发送一个``nack``消息给你，你可以进行重试操作。
 
 confirm例子
 ```java
