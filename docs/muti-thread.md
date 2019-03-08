@@ -109,6 +109,8 @@ public static ExecutorService newSingleThreadExecutor(){
 
 [toTop](#jump)
 
+参考1 ：[线程池的种类，区别和使用场景](https://www.cnblogs.com/sachen/p/7401959.html)
+
 ## ExecutorService中submit和execute的区别
 ``execute()``方法的入参为一个``Runnable``，返回值为``void``
 
