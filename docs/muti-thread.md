@@ -40,17 +40,25 @@ public ThreadPoolExecutor(int corePoolSize,
                           ThreadFactory threadFactory,
                           RejectedExecutionHandler handler)
 ```
-1) CachedThreadPool是一种可以无限扩容的线程池； 
+1) newCachedThreadPool是一种可以无限扩容的线程池； 
 - CachedThreadPool比较适合执行时间片比较小的任务； 
 - keepAliveTime为60，意味着线程空闲时间超过60s就会被杀死； 
 - 阻塞队列采用SynchronousQueue，这种阻塞队列没有存储空间，意味着只要有任务到来，就必须得有一个工作线程来处理，如果当前没有空闲线程，那么就再创建一个新的线程。
+
 ```java
 public static ExecutorService newCachedThreadPool(){
     return new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>());
 }
 ```
 
-2) ScheduledThreadPool接收SchduledFutureTask类型的任务，提交任务的方式有2种； 
+底层：返回ThreadPoolExecutor实例，corePoolSize为0；maximumPoolSize为Integer.MAX_VALUE；keepAliveTime为60L；unit为TimeUnit.SECONDS；workQueue为SynchronousQueue(同步队列)
+
+通俗：当有新任务到来，则插入到SynchronousQueue中，由于SynchronousQueue是同步队列，因此会在池中寻找可用线程来执行，若有可以线程则执行，若没有可用线程则创建一个线程来执行该任务；若池中线程空闲时间超过指定大小，则该线程会被销毁。
+
+适用：执行很多短期异步的小程序或者负载较轻的服务器
+
+
+2) newScheduledThreadPool接收SchduledFutureTask类型的任务，提交任务的方式有2种； 
     1. scheduledAtFixedRate； 
     2. scheduledWithFixedDelay； 
     - SchduledFutureTask接收参数： 
@@ -63,7 +71,13 @@ public static ExecutorService newCachedThreadPool(){
         1. 工作线程会从DelayQueue中取出已经到期的任务去执行； 
         2. 执行结束后重新设置任务的到期时间，再次放回DelayQueue。
 
-3) FixedThreadPool是一种容量固定的线程池； 
+底层：FinalizableDelegatedExecutorService包装的ThreadPoolExecutor实例，corePoolSize为1；maximumPoolSize为1；keepAliveTime为0L；unit为：TimeUnit.MILLISECONDS；workQueue为：new LinkedBlockingQueue<Runnable>() 无解阻塞队列
+
+通俗：创建只有一个线程的线程池，且线程的存活时间是无限的；当该线程正繁忙时，对于新任务会进入阻塞队列中(无界的阻塞队列)
+
+适用：一个任务一个任务执行的场景
+
+3) newFixedThreadPool是一种容量固定的线程池； 
 - 阻塞队列采用LinkedBlockingQueue，它是一种无界队列； 
 - 由于阻塞队列是一个无界队列，因此永远不可能拒绝执行任务； 
 - 由于采用无界队列，实际线程数将永远维持在nThreads，因此maximumPoolSize和keepAliveTime将无效。
@@ -74,12 +88,24 @@ public static ExecutorService newFixedThreadPool(int nThreads){
 }
 ```
 
+底层：返回ThreadPoolExecutor实例，接收参数为所设定线程数量nThread，corePoolSize为nThread，maximumPoolSize为nThread；keepAliveTime为0L(不限时)；unit为：TimeUnit.MILLISECONDS；WorkQueue为：new LinkedBlockingQueue<Runnable>() 无解阻塞队列
+
+通俗：创建可容纳固定数量线程的池子，每隔线程的存活时间是无限的，当池子满了就不在添加线程了；如果池中的所有线程均在繁忙状态，对于新任务会进入阻塞队列中(无界的阻塞队列)
+
+适用：执行长期的任务，性能好很多
+
 4) newSingleThreadExecutor 方法，它创建了一个单线程化的线程池，它只会用唯一的工作线程来执行任务，保证所有的任务按照指定的顺序(FIFO, LIFO, 优先级)来执行的。
 ```java
 public static ExecutorService newSingleThreadExecutor(){
     return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 }
 ```
+
+底层：创建ScheduledThreadPoolExecutor实例，corePoolSize为传递来的参数，maximumPoolSize为Integer.MAX_VALUE；keepAliveTime为0；unit为：TimeUnit.NANOSECONDS；workQueue为：new DelayedWorkQueue() 一个按超时时间升序排序的队列
+
+通俗：创建一个固定大小的线程池，线程池内线程存活时间无限制，线程池可以支持定时及周期性任务执行，如果所有线程均处于繁忙状态，对于新任务会进入DelayedWorkQueue队列中，这是一种按照超时时间排序的队列结构
+
+适用：周期性执行任务的场景
 
 [toTop](#jump)
 
