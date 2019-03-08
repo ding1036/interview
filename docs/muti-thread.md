@@ -85,17 +85,22 @@ public static ExecutorService newSingleThreadExecutor(){
 
 ## ExecutorService中submit和execute的区别
 ``execute()``方法的入参为一个``Runnable``，返回值为``void``
+
 ``submit()``方法，入参可以为``Callable<T>``，也可以为``Runnable``，而且方法有返回值``Future<T>``
+
 总结：
+
 1. 接收的参数不一样;
+
 2. submit()有返回值，而execute()没有;
 例如，有个validation的task，希望该task执行完后告诉我它的执行结果，是成功还是失败，然后继续下面的操作。
+
 3. submit()可以进行Exception处理;
 例如，如果task里会抛出``checked``或者``unchecked exception``，而你又希望外面的调用者能够感知这些exception并做出及时的处理，那么就需要用到``submit``，通过对``Future.get()``进行抛出异常的捕获，然后对其进行处理。
 
 参考1 ：[ExecutorService中submit和execute区别](https://blog.csdn.net/kaixuanfeng2012/article/details/74786052)
 
-参考1 ：[ExecutorService中submit和execute区别](https://www.cnblogs.com/wanqieddy/p/3853863.html)
+参考2 ：[ExecutorService中submit和execute区别](https://www.cnblogs.com/wanqieddy/p/3853863.html)
 
 [toTop](#jump)
 
@@ -110,6 +115,7 @@ public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
       }
 ```
 这个策略显然不想放弃执行任务。但是由于池中已经没有任何资源了，那么就直接使用调用该execute的线程本身来执行。
+
 2) AbortPolicy：处理程序遭到拒绝将抛出运行时异常 RejectedExecutionException
 ```java
 public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
@@ -117,11 +123,13 @@ public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
     }
 ```
 这种策略直接抛出异常，丢弃任务。（jdk默认策略，队列满并线程满时直接拒绝添加新任务，并抛出异常，所以说有时候放弃也是一种勇气，为了保证后续任务的正常进行，丢弃一些也是可以接收的，记得做好记录）
+
 3) DiscardPolicy：不能执行的任务将被删除
 ```java
 public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {}
 ```
 这种策略和AbortPolicy几乎一样，也是丢弃任务，只不过他不抛出异常。
+
 4) DiscardOldestPolicy：如果执行程序尚未关闭，则位于工作队列头部的任务将被删除，然后重试执行程序（如果再次失败，则重复此过程）
 ```java
 public void rejectedExecution(Runnable r, ThreadPoolExecutor e) { 
