@@ -36,7 +36,6 @@
 ## 网络
 
 * [网络基础](docs/network.md)
-* [网络安全](docs/save.md)
 
 ## 算法题
 
@@ -48,3 +47,8 @@
 
 * [docker](docs/docker.md)
 
+## 安全
+
+* [java安全](docs/save.md)
+
+* [加密算法](docs/encryption.md)

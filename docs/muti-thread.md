@@ -4,6 +4,7 @@
 
 - [线程池](#线程池)
     - [四种线程池](#四种线程池)
+    - [ExecutorService中submit和execute的区别](#executorservice中submit和execute的区别)
     - [四种拒绝策略](#四种拒绝策略)
 - [CountDownLatch CyclicBarrier Semaphore Exchange](#countdownlatch-cyclicbarrier-semaphore-exchange)
     - [CountDownLatch](#countdownlatch)
@@ -79,6 +80,24 @@ public static ExecutorService newSingleThreadExecutor(){
     return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
 }
 ```
+
+[toTop](#jump)
+
+## ExecutorService中submit和execute的区别
+``execute()``方法的入参为一个``Runnable``，返回值为``void``
+``submit()``方法，入参可以为``Callable<T>``，也可以为``Runnable``，而且方法有返回值``Future<T>``
+总结：
+1. 接收的参数不一样;
+2. submit()有返回值，而execute()没有;
+例如，有个validation的task，希望该task执行完后告诉我它的执行结果，是成功还是失败，然后继续下面的操作。
+3. submit()可以进行Exception处理;
+例如，如果task里会抛出``checked``或者``unchecked exception``，而你又希望外面的调用者能够感知这些exception并做出及时的处理，那么就需要用到``submit``，通过对``Future.get()``进行抛出异常的捕获，然后对其进行处理。
+
+参考1 ：[ExecutorService中submit和execute区别](https://blog.csdn.net/kaixuanfeng2012/article/details/74786052)
+
+参考1 ：[ExecutorService中submit和execute区别](https://www.cnblogs.com/wanqieddy/p/3853863.html)
+
+[toTop](#jump)
 
 ## 四种拒绝策略
 

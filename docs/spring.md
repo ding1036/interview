@@ -20,6 +20,7 @@
     - [过滤器和拦截器的区别：](#过滤器和拦截器的区别)
     - [触发时机](#触发时机)
 - [自定义注解](#自定义注解)
+- [Spring事务失效原因](#spring事务失效原因)
 
 <!-- /TOC -->
 
@@ -511,5 +512,39 @@ ServletRequest request, ServletResponse response, FilterChain chain
 6.注解可以被继承：``@Inherited``
 
 7.注解解析器：用来解析自定义注解。
+
+[toTop](#jump)
+
+# Spring事务失效原因
+1.如使用mysql且引擎是``MyISAM``，则事务会不起作用，原因是``MyISAM``不支持事务，可以改成``InnoDB``
+
+2. 如果使用了spring+mvc，则``context:component-scan``重复扫描问题可能会引起事务失败。(即父子容器)
+
+3. ``@Transactional`` 注解开启配置，必须放到``listener``里加载，如果放到``DispatcherServlet``的配置里，事务也是不起作用的。
+
+4. ``@Transactional`` 注解只能应用到 ``public`` 可见度的方法上。 如果你在 protected、private 或者 package-visible 的方法上使用 ``@Transactional`` 注解，它也不会报错，事务也会失效。 
+
+5. Spring团队建议在具体的类（或类的方法）上使用 ``@Transactional`` 注解，而不要使用在类所要实现的任何接口上。在接口上使用 ``@Transactional`` 注解，只能当你设置了基于接口的代理时它才生效。因为注解是 不能继承 的，这就意味着如果正在使用基于类的代理时，那么事务的设置将不能被基于类的代理所识别，而且对象也将不会被事务代理所包装。
+
+6. 在业务层捕捉异常后，发现事务不生效。
+在业务层手工捕捉并处理了异常（try..catch）等于把异常“吃”掉了，Spring自然不知道这里有错，更不会主动去回滚数据。推荐做法是在业务层统一抛出异常，然后在控制层统一处理。
+
+7.遇到非检测异常时，事务不开启，也无法回滚。
+因为Spring的默认的事务规则是遇到运行异常（``RuntimeException``）和程序错误（``Error``）才会回滚。如果想针对非检测异常进行事务回滚，可以在``@Transactional ``注解里使用``rollbackFor`` 属性明确指定异常。
+
+8.自调用无法回滚。spring的数据库事务约定的实现原理是AOP，而AOP的原理是动态代理，在自调用的过程中，是类自身的调用，而不是代理对象去调用，那么不会产生AOP，这样spring就不能把你的代码植入到约定的流程中，于是就产生了失败场景。
+解决方案：
+用一个service去调用另一个service，这样就是代理对象的调用。
+
+
+参考1： [Spring事务失效的原因](https://blog.csdn.net/paincupid/article/details/51822599)
+
+参考2： [Spring事务失效事件（非常规原因）](https://www.jianshu.com/p/d4c3634447d0)
+
+参考3： [SpringBoot 快速开启事务中 @Transaction注解不生效的问题](https://blog.csdn.net/qq_21508727/article/details/82705028)
+
+参考4： [springboot @Transactional 自调用失效问题](https://blog.csdn.net/qq_33696896/article/details/82013095)
+
+
 
 [toTop](#jump)
