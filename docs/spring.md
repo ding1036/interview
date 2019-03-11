@@ -21,6 +21,9 @@
     - [触发时机](#触发时机)
 - [自定义注解](#自定义注解)
 - [Spring事务失效原因](#spring事务失效原因)
+- [Bean的作用域](#bean的作用域)
+- [Spring生命周期](#spring生命周期)
+- [BeanFactory和FactoryBean的区别](#beanfactory和factorybean的区别)
 
 <!-- /TOC -->
 
@@ -546,5 +549,79 @@ ServletRequest request, ServletResponse response, FilterChain chain
 参考4： [springboot @Transactional 自调用失效问题](https://blog.csdn.net/qq_33696896/article/details/82013095)
 
 
+[toTop](#jump)
+
+# Bean的作用域
+
+singleton单例：是spring默认缺省的，全局只有一个对象。
+
+prototype原型：每次都是新的Bean实例，有状态的Bean建议用此类型。
+
+request：一次Http请求中，容器返回同一实例Bean，仅在当前Http Request内有效
+
+session：一次Http Session中，容器返回同一实例Bean，仅在当前Session内有效。
+
+global session：一个全局的Http Session中，容器返回同一个实例Bean。
+
+[toTop](#jump)
+
+# Spring生命周期
+
+
+1) 实例化bean对象(通过构造方法或者工厂方法)
+
+2) 设置对象属性(setter等)（依赖注入）
+
+3) 如果Bean实现了``BeanNameAware``接口，工厂调用Bean的``setBeanName()``方法传递Bean的ID。（和下面的一条均属于检查Aware接口）
+
+4) 如果Bean实现了``BeanFactoryAware``接口，工厂调用``setBeanFactory()``方法传入工厂自身
+
+5) 将Bean实例传递给Bean的前置处理器
+
+```java
+postProcessBeforeInitialization(Object bean, String beanname)
+```
+
+6) 调用Bean的初始化方法
+
+7) 将Bean实例传递给Bean的后置处理器
+
+```java
+postProcessAfterInitialization(Object bean, String beanname)
+```
+
+8) 使用Bean
+
+9) 容器关闭之前，调用Bean的销毁方法
+
+参考1 :[Spring 了解Bean的一生(生命周期)](https://blog.csdn.net/w_linux/article/details/80086950)
+
+
+[toTop](#jump)
+
+# BeanFactory和FactoryBean的区别
+
+BeanFactory:
+BeanFactory是个Factory，也就是IOC容器或对象工厂，在Spring中，所有的Bean都是由BeanFactory(也就是IOC容器)来进行管理的。BeanFactory是IOC容器的核心接口，它的职责包括：实例化、定位、配置应用程序中的对象及建立这些对象间的依赖。BeanFactory只是个接口，并不是IOC容器的具体实现，但是Spring容器给出了很多种实现，如 ``DefaultListableBeanFactory``、``XmlBeanFactory``、``ApplicationContext``等，其中``XmlBeanFactory``就是常用的一个，该实现将以XML方式描述组成应用的对象及对象间的依赖关系。``XmlBeanFactory``类将持有此XML配置元数据，并用它来构建一个完全可配置的系统或应用。   原始的``BeanFactory``无法支持spring的许多插件，如AOP功能、Web应用等。 
+``ApplicationContext``包含``BeanFactory``的所有功能，通常建议比``BeanFactory``优先 
+
+``ApplicationContext``以一种更向面向框架的方式工作以及对上下文进行分层和实现继承，``ApplicationContext``包还提供了以下的功能： 
+• MessageSource, 提供国际化的消息访问 
+• 资源访问，如URL和文件 
+• 事件传播 
+• 载入多个（有继承关系）上下文 ，使得每一个上下文都专注于一个特定的层次，比如应用的web层; 
+
+FactoryBean:
+FactoryBean是个Bean。对FactoryBean而言，这个Bean不是简单的Bean，而是一个能生产或者修饰对象生成的工厂Bean,它的实现与设计模式中的工厂模式和修饰器模式类似,它是实现了``FactoryBean<T>``接口的Bean，根据该Bean的ID从BeanFactory中获取的实际上是FactoryBean的``getObject()``返回的对象，而不是FactoryBean本身，如果要获取FactoryBean对象，请在id前面加一个``&``符号来获取。
+例子：
+当从IOC容器中获取FactoryBeanPojo对象的时候，用```getBean(String BeanName)```获取的确是Student对象，可以看到在``FactoryBeanPojo``中的type属性设置为student的时候，会在``getObject()``方法中返回Student对象。所以说从IOC容器获取实现了FactoryBean的实现类时，返回的却是实现类中的``getObject``方法返回的对象，要想获取FactoryBean的实现类，得在``getBean(String BeanName)``中的BeanName之前加上     ,写成``getBean(String &BeanName)``
+
+参考1 :[BeanFactory 简介以及它 和FactoryBean的区别](https://www.cnblogs.com/aspirant/p/9082858.html)
+
+参考2 :[BeanFactory和FactoryBean的区别](https://blog.csdn.net/wangbiao007/article/details/53183764)
+
+参考3 :[spring中BeanFactory和FactoryBean的区别](https://blog.csdn.net/qiesheng/article/details/72875315)
+
+参考4 :[Spring BeanFactory与FactoryBean的区别及其各自的详细介绍于用法](https://www.cnblogs.com/redcool/p/6413461.html)
 
 [toTop](#jump)
