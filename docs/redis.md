@@ -25,6 +25,9 @@
     - [Hash](#hash)
     - [Set](#set)
     - [ZSet](#zset)
+- [Redis 的线程模型](#redis-的线程模型)
+- [如果有大量的 key 需要设置同一时间过期，一般需要注意什么？](#如果有大量的-key-需要设置同一时间过期一般需要注意什么)
+- [Redis分布式锁](#redis分布式锁)
 
 <!-- /TOC -->
 
@@ -344,7 +347,8 @@ redis用单线程也不是没有问题。有一个很明显的问题就是。当
 1) 定时删除，用一个定时器来负责监视 Key，过期则自动删除。虽然内存及时释放，但是十分消耗 CPU 资源。在大并发请求下，CPU 要将时间应用在处理请求，而不是删除 Key，因此没有采用这一策略。
 
 2) 定期删除：Redis 默认每个 100ms 检查，有过期 Key 则删除。需要说明的是，Redis 不是每个 100ms 将所有的 Key 检查一次，而是随机抽取进行检查。
-惰性删除：放任键过期不管，但是每次从键空间中获取键时，都检查取得的键是否过期，如果过期的话，就删除该键；如果没有过期，那就返回该键；
+
+3) 惰性删除：放任键过期不管，但是每次从键空间中获取键时，都检查取得的键是否过期，如果过期的话，就删除该键；如果没有过期，那就返回该键；
 
 * 采用定期删除+惰性删除就没其他问题了么
 不是的，如果定期删除没删除掉 Key。并且你也没及时去请求 Key，也就是说惰性删除也没生效。这样，Redis 的内存会越来越高。那么就应该采用内存淘汰机制。
@@ -470,4 +474,215 @@ zrank--zslGetRank---平均O(logN), 最坏O(N)
 
 
 参考：[Redis 为何这么快？聊聊它的数据结构](https://mp.weixin.qq.com/s/69xl2yU4B97aQIn1k_Lwqw)
+
+[toTop](#jump)
+
+# Redis 的线程模型
+redis 内部使用文件事件处理器 ``file event handler``，这个文件事件处理器是单线程的，所以 redis 才叫做单线程的模型。它采用 IO 多路复用机制同时监听多个 socket，根据 socket 上的事件来选择对应的事件处理器进行处理。
+
+文件事件处理器的结构包含 4 个部分：
+
+1. 多个 socket
+2. IO 多路复用程序
+3. 文件事件分派器
+4. 事件处理器（连接应答处理器、命令请求处理器、命令回复处理器）
+
+多个 socket 可能会并发产生不同的操作，每个操作对应不同的文件事件，但是 IO 多路复用程序会监听多个 socket，会将 socket 产生的事件放入队列中排队，事件分派器每次从队列中取出一个事件，把该事件交给对应的事件处理器进行处理。
+
+来看客户端与 redis 的一次通信过程：
+
+![](/img/redis_tel_process.jpg)
+
+
+1. 客户端 socket01 向 redis 的 server socket 请求建立连接，此时 server socket 会产生一个 ``AE_READABLE`` 事件，IO 多路复用程序监听到 server socket 产生的事件后，将该事件压入队列中。文件事件分派器从队列中获取该事件，交给``连接应答处理器``。连接应答处理器会创建一个能与客户端通信的 socket01，并将该 socket01 的 ``AE_READABLE`` 事件与命令请求处理器关联。
+
+2. 假设此时客户端发送了一个 ``set key value`` 请求，此时 redis 中的 socket01 会产生 ``AE_READABLE`` 事件，IO 多路复用程序将事件压入队列，此时事件分派器从队列中获取到该事件，由于前面 socket01 的 ``AE_READABLE`` 事件已经与命令请求处理器关联，因此事件分派器将事件交给命令请求处理器来处理。命令请求处理器读取 socket01 的 ``key value`` 并在自己内存中完成 ``key value`` 的设置。操作完成后，它会将 socket01 的 ``AE_WRITABLE`` 事件与令回复处理器关联。
+
+3. 如果此时客户端准备好接收返回结果了，那么 redis 中的 socket01 会产生一个 ``AE_WRITABLE`` 事件，同样压入队列中，事件分派器找到相关联的命令回复处理器，由命令回复处理器对 socket01 输入本次操作的一个结果，比如 ``ok``，之后解除 socket01 的 ``AE_WRITABLE`` 事件与命令回复处理器的关联。
+
+
+
+[toTop](#jump)
+
+
+# 如果有大量的 key 需要设置同一时间过期，一般需要注意什么？
+
+如果大量的 key 过期时间设置的过于集中，到过期的那个时间点，Redis可能会出现短暂的卡顿现象。
+
+一般需要在时间上加一个随机值，使得过期时间分散一些。
+
+这个定期的频率，由配置文件中的 hz 参数决定，代表了一秒钟内，后台任务期望被调用的次数。Redis3.0.0 中的默认值是 10 ，代表每秒钟调用 10 次后台任务。
+
+hz 调大将会提高 Redis 主动淘汰的频率，如果你的 Redis 存储中包含很多冷数据占用内存过大的话，可以考虑将这个值调大，但 Redis 作者建议这个值不要超过 100 。我们实际线上将这个值调大到 100 ，观察到 CPU 会增加 2% 左右，但对冷数据的内存释放速度确实有明显的提高（通过观察 keyspace 个数和 used_memory 大小）。
+
+参考1 ：[关于Redis数据过期策略](https://www.cnblogs.com/chenpingzhao/p/5022467.html)
+
+[toTop](#jump)
+
+
+# Redis分布式锁
+
+Redis分布式锁大部分人都会想到：``setnx+lua``，或者知道``set key value px milliseconds nx``。后一种方式的核心实现命令如下：
+
+```shell
+- 获取锁（unique_value可以是UUID等）
+SET resource_name unique_value NX PX 30000
+
+- 释放锁（lua脚本中，一定要比较value，防止误解锁）
+if redis.call("get",KEYS[1]) == ARGV[1] then
+    return redis.call("del",KEYS[1])
+else
+    return 0
+end
+```
+
+这种实现方式有3大要点：
+
+1. set命令要用``set key value px milliseconds nx``；
+
+2. value要具有唯一性；
+
+3. 释放锁时要验证value值，不能误解锁；
+
+事实上这类琐最大的缺点就是它加锁时只作用在一个Redis节点上，即使Redis通过sentinel保证高可用，如果这个master节点由于某些原因发生了主从切换，那么就会出现锁丢失的情况：
+
+1. 在Redis的master节点上拿到了锁；
+
+2. 但是这个加锁的key还没有同步到slave节点；
+
+3. master故障，发生故障转移，slave节点升级为master节点；
+
+4. 导致锁丢失。
+
+* Redlock实现
+
+在Redis的分布式环境中，我们假设有N个Redis master。这些节点``完全互相独立，不存在主从复制或者其他集群协调机制``。我们确保将在N个实例上使用与在Redis单实例下相同方法获取和释放锁。现在我们假设有5个Redis master节点，同时我们需要在5台服务器上面运行这些Redis实例，这样保证他们不会同时都宕掉。
+
+为了取到锁，客户端应该执行以下操作:
+
+1. 获取当前Unix时间，以毫秒为单位。
+
+2. 依次尝试从5个实例，使用相同的key和``具有唯一性的value``（例如UUID）获取锁。当向Redis请求获取锁时，客户端应该设置一个网络连接和响应超时时间，这个超时时间应该小于锁的失效时间。例如你的锁自动失效时间为10秒，则超时时间应该在5-50毫秒之间。这样可以避免服务器端Redis已经挂掉的情况下，客户端还在死死地等待响应结果。如果服务器端没有在规定时间内响应，客户端应该尽快尝试去另外一个Redis实例请求获取锁。
+
+3. 客户端使用当前时间减去开始获取锁时间（步骤1记录的时间）就得到获取锁使用的时间。``当且仅当从大多数（N/2+1，这里是3个节点）的Redis节点都取到锁，并且使用的时间小于锁失效时间时，锁才算获取成功``。
+
+4. 如果取到了锁，key的真正有效时间等于有效时间减去获取锁所使用的时间（步骤3计算的结果）。
+
+5. 如果因为某些原因，获取锁失败（没有在至少N/2+1个Redis实例取到锁或者取锁时间已经超过了有效时间），客户端应该``在所有的Redis实例上进行解锁``（即便某些Redis实例根本就没有加锁成功，防止某些节点获取到锁但是客户端没有得到响应而导致接下来的一段时间不能被重新获取锁）。
+
+Redlock源码
+用法
+```java
+Config config = new Config();
+config.useSentinelServers().addSentinelAddress("127.0.0.1:6369","127.0.0.1:6379", "127.0.0.1:6389")
+        .setMasterName("masterName")
+        .setPassword("password").setDatabase(0);
+RedissonClient redissonClient = Redisson.create(config);
+// 还可以getFairLock(), getReadWriteLock()
+RLock redLock = redissonClient.getLock("REDLOCK_KEY");
+boolean isLock;
+try {
+    isLock = redLock.tryLock();
+    // 500ms拿不到锁, 就认为获取锁失败。10000ms即10s是锁失效时间。
+    isLock = redLock.tryLock(500, 10000, TimeUnit.MILLISECONDS);
+    if (isLock) {
+        //TODO if get lock success, do something;
+    }
+} catch (Exception e) {
+} finally {
+    // 无论如何, 最后都要解锁
+    redLock.unlock();
+}
+
+```
+
+唯一ID
+实现分布式锁的一个非常重要的点就是set的value要具有唯一性，redisson的value是怎样保证value的唯一性呢？答案是``UUID+threadId``。入口在``redissonClient.getLock("REDLOCK_KEY")``，源码在Redisson.java和RedissonLock.java中：
+
+```java
+protected final UUID id = UUID.randomUUID();
+String getLockName(long threadId) {
+    return id + ":" + threadId;
+}
+
+```
+
+获取锁
+获取锁的代码为``redLock.tryLock()``或者``redLock.tryLock(500, 10000, TimeUnit.MILLISECONDS)``，两者的最终核心源码都是下面这段代码，只不过前者获取锁的默认租约时间（leaseTime）是LOCK_EXPIRATION_INTERVAL_SECONDS，即30s：
+
+```java
+<T> RFuture<T> tryLockInnerAsync(long leaseTime, TimeUnit unit, long threadId, RedisStrictCommand<T> command) {
+    internalLockLeaseTime = unit.toMillis(leaseTime);
+    // 获取锁时向5个redis实例发送的命令
+    return commandExecutor.evalWriteAsync(getName(), LongCodec.INSTANCE, command,
+              // 首先分布式锁的KEY不能存在，如果确实不存在，那么执行hset命令（hset REDLOCK_KEY uuid+threadId 1），并通过pexpire设置失效时间（也是锁的租约时间）
+              "if (redis.call('exists', KEYS[1]) == 0) then " +
+                  "redis.call('hset', KEYS[1], ARGV[2], 1); " +
+                  "redis.call('pexpire', KEYS[1], ARGV[1]); " +
+                  "return nil; " +
+              "end; " +
+              // 如果分布式锁的KEY已经存在，并且value也匹配，表示是当前线程持有的锁，那么重入次数加1，并且设置失效时间
+              "if (redis.call('hexists', KEYS[1], ARGV[2]) == 1) then " +
+                  "redis.call('hincrby', KEYS[1], ARGV[2], 1); " +
+                  "redis.call('pexpire', KEYS[1], ARGV[1]); " +
+                  "return nil; " +
+              "end; " +
+              // 获取分布式锁的KEY的失效时间毫秒数
+              "return redis.call('pttl', KEYS[1]);",
+              // 这三个参数分别对应KEYS[1]，ARGV[1]和ARGV[2]
+                Collections.<Object>singletonList(getName()), internalLockLeaseTime, getLockName(threadId));
+}
+```
+
+获取锁的命令中，
+
+KEYS[1]就是Collections.singletonList(getName())，表示分布式锁的key，即REDLOCK_KEY；
+
+ARGV[1]就是internalLockLeaseTime，即锁的租约时间，默认30s；
+
+ARGV[2]就是getLockName(threadId)，是获取锁时set的唯一值，即UUID+threadId
+
+释放锁
+
+释放锁的代码为redLock.unlock()，核心源码如下
+
+```java
+protected RFuture<Boolean> unlockInnerAsync(long threadId) {
+    // 向5个redis实例都执行如下命令
+    return commandExecutor.evalWriteAsync(getName(), LongCodec.INSTANCE, RedisCommands.EVAL_BOOLEAN,
+            // 如果分布式锁KEY不存在，那么向channel发布一条消息
+            "if (redis.call('exists', KEYS[1]) == 0) then " +
+                "redis.call('publish', KEYS[2], ARGV[1]); " +
+                "return 1; " +
+            "end;" +
+            // 如果分布式锁存在，但是value不匹配，表示锁已经被占用，那么直接返回
+            "if (redis.call('hexists', KEYS[1], ARGV[3]) == 0) then " +
+                "return nil;" +
+            "end; " +
+            // 如果就是当前线程占有分布式锁，那么将重入次数减1
+            "local counter = redis.call('hincrby', KEYS[1], ARGV[3], -1); " +
+            // 重入次数减1后的值如果大于0，表示分布式锁有重入过，那么只设置失效时间，还不能删除
+            "if (counter > 0) then " +
+                "redis.call('pexpire', KEYS[1], ARGV[2]); " +
+                "return 0; " +
+            "else " +
+                // 重入次数减1后的值如果为0，表示分布式锁只获取过1次，那么删除这个KEY，并发布解锁消息
+                "redis.call('del', KEYS[1]); " +
+                "redis.call('publish', KEYS[2], ARGV[1]); " +
+                "return 1; "+
+            "end; " +
+            "return nil;",
+            // 这5个参数分别对应KEYS[1]，KEYS[2]，ARGV[1]，ARGV[2]和ARGV[3]
+            Arrays.<Object>asList(getName(), getChannelName()), LockPubSub.unlockMessage, internalLockLeaseTime, getLockName(threadId));
+
+}
+```
+
+
+
+
+参考1 :[Redlock：Redis分布式锁最牛逼的实现 ](https://mp.weixin.qq.com/s/JLEzNqQsx-Lec03eAsXFOQ)
+
+参考2 :[Redisson实现Redis分布式锁的N种姿势](https://www.jianshu.com/p/f302aa345ca8)
+
 [toTop](#jump)

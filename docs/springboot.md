@@ -10,7 +10,9 @@
 
 # SpringBoot启动过程
 1.构造SpringApplication的实例
+
 2.调用SpringApplication.run()方法
+
 构造SpringApplicationRunListeners 实例
 发布ApplicationStartedEvent事件
 SpringApplicationRunListeners 实例准备环境信息
