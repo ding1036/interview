@@ -202,10 +202,130 @@ ServletRequest request, ServletResponse response, FilterChain chain
 )
 ```
 
-的入参是ServletRequest ，而不是httpservletrequest。因为过滤器是在httpservlet之前。
+的入参是``ServletRequest`` ，而不是``httpservletrequest``。因为过滤器是在``httpservlet``之前。
 ![](/img/filter.png)
 
 ![](/img/filterAndIntercept2.png)
+
+过滤器实现
+
+```java
+public class LogCostFilter implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+ 
+    }
+ 
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        long start = System.currentTimeMillis();
+
+        filterChain.doFilter(servletRequest,servletResponse);
+        
+        System.out.println("Execute cost="+(System.currentTimeMillis()-start));
+    }
+ 
+    @Override
+    public void destroy() {
+ 
+    }
+}
+
+```
+Spring boot中，我们需要``FilterRegistrationBean``来完成配置。其实现过程如下：
+
+```java
+@Configuration
+public class FilterConfig {
+ 
+    @Bean
+    public FilterRegistrationBean registFilter() {
+        FilterRegistrationBean registration = new FilterRegistrationBean();
+        registration.setFilter(new LogCostFilter());
+        registration.addUrlPatterns("/*");
+        registration.setName("LogCostFilter");
+        registration.setOrder(1);
+        return registration;
+    }
+ 
+}
+```
+
+除了通过 ``FilterRegistrationBean`` 来配置以外，还有一种更直接的办法，直接通过注解就可以完成了：
+
+```java
+@WebFilter(urlPatterns = "/*", filterName = "logFilter2")
+public class LogCostFilter2 implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+ 
+    }
+ 
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        long start = System.currentTimeMillis();
+        filterChain.doFilter(servletRequest, servletResponse);
+        System.out.println("LogFilter2 Execute cost=" + (System.currentTimeMillis() - start));
+    }
+ 
+    @Override
+    public void destroy() {
+ 
+    }
+}
+```
+
+这里直接用``@WebFilter``就可以进行配置，同样，可以设置url匹配模式，过滤器名称等。这里需要注意一点的是``@WebFilter``这个注解是``Servlet3.0``的规范，并不是Spring boot提供的。除了这个注解以外，我们还需在配置类中加另外一个注解：``@ServletComponetScan``，指定扫描的包。
+
+```java
+
+@SpringBootApplication
+@MapperScan("com.pandy.blog.dao")
+@ServletComponentScan("com.pandy.blog.filters")
+public class Application {
+    public static void main(String[] args) throws Exception {
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+拦截器实现
+
+```java
+public class LogCostInterceptor implements HandlerInterceptor {
+    long start = System.currentTimeMillis();
+    @Override
+    public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o) throws Exception {
+        start = System.currentTimeMillis();
+        return true;
+    }
+ 
+    @Override
+    public void postHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, ModelAndView modelAndView) throws Exception {
+        System.out.println("Interceptor cost="+(System.currentTimeMillis()-start));
+    }
+ 
+    @Override
+    public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object o, Exception e) throws Exception {
+    }
+}
+```
+
+需要实现``HandlerInterceptor``这个接口，这个接口包括三个方法，``preHandle``是请求执行前执行的，``postHandler``是请求结束执行的，但只有``preHandle``方法返回``true``的时候才会执行，``afterCompletion``是视图渲染完成后才执行，同样需要``preHandle``返回``true``，该方法通常用于清理资源等工作。除了实现上面的接口外，我们还需对其进行配置：
+
+```java
+@Configuration
+public class InterceptorConfig implements WebMvcConfigurer {
+ 
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(new LogCostInterceptor()).addPathPatterns("/**");
+        super.addInterceptors(registry);
+    }
+}
+
+```
+    Spring 5.0 以后WebMvcConfigurerAdapter会取消掉,可以直接实现WebMvcConfigurer替代
 
 
 参考 1 :[spring过滤器和拦截器的区别和联系](https://www.cnblogs.com/nizuimeiabc1/p/6774073.html)

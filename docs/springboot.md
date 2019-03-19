@@ -5,6 +5,7 @@
 - [SpringBoot启动过程](#springboot启动过程)
 - [Spring Boot 提供了哪些核心功能](#spring-boot-提供了哪些核心功能)
 - [springboot自动配置的原理](#springboot自动配置的原理)
+- [springboot加载配置类过程](#springboot加载配置类过程)
 
 <!-- /TOC -->
 
@@ -67,5 +68,12 @@ Spring Boot 没有引入任何形式的代码生成，它是使用的 Spring 4.0
 参考1 ：[springboot+springcloud相关面试题](https://blog.csdn.net/panhaigang123/article/details/79587612)
 
 参考2 ：[一个面试题引起的SpringBoot启动解析](https://juejin.im/post/5b679fbc5188251aad213110)
+
+[toTop](#jump)
+
+# springboot加载配置类过程
+
+
+参考1 :[springboot启动时是如何加载配置文件application.yml文件](https://blog.csdn.net/chengkui1990/article/details/79866499)
 
 [toTop](#jump)
