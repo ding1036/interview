@@ -28,6 +28,7 @@
 - [Redis 的线程模型](#redis-的线程模型)
 - [如果有大量的 key 需要设置同一时间过期，一般需要注意什么？](#如果有大量的-key-需要设置同一时间过期一般需要注意什么)
 - [Redis分布式锁](#redis分布式锁)
+- [假如 Redis 里面有 1 亿个 key，其中有 10w 个 key 是以某个固定的已知的前缀开头的，如果将它们全部找出来？](#假如-redis-里面有-1-亿个-key其中有-10w-个-key-是以某个固定的已知的前缀开头的如果将它们全部找出来)
 
 <!-- /TOC -->
 
@@ -686,3 +687,23 @@ protected RFuture<Boolean> unlockInnerAsync(long threadId) {
 参考2 :[Redisson实现Redis分布式锁的N种姿势](https://www.jianshu.com/p/f302aa345ca8)
 
 [toTop](#jump)
+
+
+
+# 假如 Redis 里面有 1 亿个 key，其中有 10w 个 key 是以某个固定的已知的前缀开头的，如果将它们全部找出来？
+
+使用 keys 指令可以扫出指定模式的 key 列表。
+
+如果这个 Redis 正在给线上的业务提供服务，那使用keys指令会有什么问题？
+
+Redis 的单线程的。keys 指令会导致线程阻塞一段时间，线上服务会停顿，直到指令执行完毕，服务才能恢复。这个时候可以使用 scan 指令，scan 指令可以无阻塞的提取出指定模式的 key 列表，但是会有一定的重复概率，在客户端做一次去重就可以了，但是整体所花费的时间会比直接用 keys 指令长。
+
+[toTop](#jump)
+
+推荐阅读
+[redis面试题](https://segmentfault.com/a/1190000014507534)
+
+[史上最全Redis面试题及答案](https://www.imooc.com/article/36399)
+
+[天下无难试之Redis面试题刁难大全](https://zhuanlan.zhihu.com/p/32540678)
+
