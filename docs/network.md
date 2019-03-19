@@ -16,11 +16,12 @@
 - [linux nginx配置https](#linux-nginx配置https)
 - [GET POST区别](#get-post区别)
 - [HTTP 状态码](#http-状态码)
-    - [1XX 信息](#1xx-信息)
-    - [2XX 成功](#2xx-成功)
-    - [3XX 重定向](#3xx-重定向)
-    - [4XX 客户端错误](#4xx-客户端错误)
-    - [5XX 服务器错误](#5xx-服务器错误)
+- [OSI 七层体系结构](#osi-七层体系结构)
+- [TCP/IP 四层体系结构](#tcpip-四层体系结构)
+- [forward 和 redirect 的区别？](#forward-和-redirect-的区别)
+- [Cookies 和 Session 的区别](#cookies-和-session-的区别)
+- [一次完整的 HTTP 请求所经历的步骤](#一次完整的-http-请求所经历的步骤)
+- [HTTPS](#https)
 
 <!-- /TOC -->
 
@@ -182,12 +183,12 @@ HTTPS跟HTTP一样，只不过增加了SSL。
 
 # HTTP 状态码
 
-## 1XX 信息
+* 1XX 信息
 
 ```
 100 Continue ：表明到目前为止都很正常，客户端可以继续发送请求或者忽略这个响应。
 ```
-## 2XX 成功
+* 2XX 成功
 
 ```
 200 OK
@@ -197,7 +198,7 @@ HTTPS跟HTTP一样，只不过增加了SSL。
 206 Partial Content ：表示客户端进行了范围请求，响应报文包含由 Content-Range 指定范围的实体内容。
 ```
 
-## 3XX 重定向
+* 3XX 重定向
 
 ```
 301 Moved Permanently ：永久性重定向
@@ -213,7 +214,7 @@ HTTPS跟HTTP一样，只不过增加了SSL。
 307 Temporary Redirect ：临时重定向，与 302 的含义类似，但是 307 要求浏览器不会把重定向请求的 POST 方法改成 GET 方法。
 ```
 
-## 4XX 客户端错误
+* 4XX 客户端错误
 
 ```
 400 Bad Request ：请求报文中存在语法错误。
@@ -225,7 +226,7 @@ HTTPS跟HTTP一样，只不过增加了SSL。
 404 Not Found
 ```
 
-## 5XX 服务器错误
+* 5XX 服务器错误
 
 ```
 500 Internal Server Error ：服务器正在执行请求时发生错误。
@@ -233,3 +234,175 @@ HTTPS跟HTTP一样，只不过增加了SSL。
 503 Service Unavailable ：服务器暂时处于超负载或正在进行停机维护，现在无法处理请求。
 ```
 [toTop](#jump)
+
+# OSI 七层体系结构
+
+应用层（数据）：确定进程之间通信的性质以满足用户需要以及提供网络与用户应用
+
+表示层（数据）：主要解决用户信息的语法表示问题，如加密解密
+
+会话层（数据）：提供包括访问验证和会话管理在内的建立和维护应用之间通信的机制，如服务器验证用户登录便是由会话层完成的
+
+传输层（段）：实现网络不同主机上用户进程之间的数据通信，可靠
+与不可靠的传输，传输层的错误检测，流量控制等
+
+网络层（包）：提供逻辑地址（IP）、选路，数据从源端到目的端的
+传输
+
+数据链路层（帧）：将上层数据封装成帧，用MAC地址访问媒介，错误检测与修正
+
+物理层（比特流）：设备之间比特流的传输，物理接口，电气特性等
+
+
+[toTop](#jump)
+
+# TCP/IP 四层体系结构
+
+
+
+应用层
+
+    HTTP、TELNET、FTP、SMTP
+
+传输层
+
+    TCP、UDP
+
+网络层
+
+    IP、ICMP
+
+数据接口
+
+    PPP
+
+
+[toTop](#jump)
+
+# forward 和 redirect 的区别？
+
+1. 从地址栏显示来说
+forward是服务器请求资源,服务器直接访问目标地址的URL,把那个URL的响应内容读取过来,然后把这些内容再发给浏览器.浏览器根本不知道服务器发送的内容从哪里来的,所以它的``地址栏还是原来的地址``.
+
+redirect是服务端根据逻辑,发送一个状态码,告诉浏览器重新去请求那个地址.所以``地址栏显示的是新的URL``.
+
+2. 从数据共享来说
+forward:转发页面和转发到的页面可以共享request里面的数据.
+redirect:不能共享数据.
+
+3. 从运用地方来说
+forward:一般用于用户登陆的时候,根据角色转发到相应的模块.
+redirect:一般用于用户注销登陆时返回主页面和跳转到其它的网站等
+
+4. 从效率来说
+forward:高
+redirect:低
+
+参考1 :[请求转发（Forward）和重定向（Redirect）的区别](https://www.cnblogs.com/Qian123/p/5345527.html)
+
+
+[toTop](#jump)
+
+# Cookies 和 Session 的区别
+Session 在服务器端，Cookie 在客户端（浏览器）。
+
+    Session 默认被存在在服务器的一个文件里（不是内存）。
+
+Session 的运行依赖 sessionid ，而 sessionid 是存在 Cookie 中的，也就是说，如果浏览器禁用了 Cookie ，同时 session 也会失效。但是，可以通过其它方式实现，比如在 url 参数中传递 sessionid 。
+
+Session 可以放在文件、数据库、或内存中都可以。
+
+[toTop](#jump)
+
+# 一次完整的 HTTP 请求所经历的步骤
+
+
+1、DNS 解析(通过访问的域名找出其 IP 地址，递归搜索)。
+
+2、HTTP 请求，当输入一个请求时，建立一个 Socket 连接发起 TCP的 3次握手。
+
+    如果是 HTTPS 请求，会略微有不同。等到 HTTPS 小节，我们在来讲。
+
+3.1、客户端向服务器发送请求命令（一般是 GET 或 POST 请求）。
+
+    客户端的网络层不用关心应用层或者传输层的东西，主要做的是通过查找路由表确定如何到达服务器，期间可能经过多个路由器，这些都是由路由器来完成的工作，我不作过多的描述，无非就是通过查找路由表决定通过那个路径到达服务器。
+
+    客户端的链路层，包通过链路层发送到路由器，通过邻居协议查找给定 IP 地址的 MAC 地址，然后发送 ARP 请求查找目的地址，如果得到回应后就可以使用 ARP 的请求应答交换的 IP 数据包现在就可以传输了，然后发送 IP 数据包到达服务器的地址。
+
+3.2、客户端发送请求头信息和数据。
+
+4.1、服务器发送应答头信息。
+
+4.2、服务器向客户端发送数据。
+
+5、服务器关闭 TCP 连接（4次挥手）。
+
+    这里是否关闭 TCP 连接，也根据 HTTP Keep-Alive 机制有关。
+
+    同时，客户端也可以主动发起关闭 TCP 连接。
+
+6、客户端根据返回的 HTML、CSS、JS 进行渲染。
+
+![](/img/http_process.jpg)
+
+
+[toTop](#jump)
+
+# HTTPS 
+
+HTTPS ，实际就是在 TCP 层与 HTTP 层之间加入了`` SSL/TLS`` 来为上层的安全保驾护航，主要用到对称加密、非对称加密、证书，等技术进行客户端与服务器的数据加密传输，最终达到保证整个通信的安全性。
+
+* SSL 加密方式是什么?
+
+
+
+在建立传输链路时，SSL 首先对对称加密的密钥使用公钥进行非对称加密。
+
+    这里 Server 返回给 Client 的不是公钥( server.pub )，而是 server.crt 。Client 需要使用 ca.key 从 server.crt 中解密出公钥( server.pub ) 。
+
+链路建立好之后，SSL 对传输内容使用公钥( server.pub )对称加密。
+
+
+    对称密钥加密，是指加密和解密使用同一个密钥的方式，这种方式存在的最大问题就是密钥发送问题，即如何安全地将密钥发给对方。
+    
+    非对称加密，指使用一对非对称密钥，即公钥和私钥，公钥可以随意发布，但私钥只有自己知道。发送密文的一方使用对方的公钥进行加密处理，对方接收到加密信息后，使用自己的私钥进行解密。
+
+* 什么是单向认证、双向认证?
+
+单向认证，指的是只有一个对象校验对端的证书合法性。
+
+    通常都是 Client 来校验服务器的合法性。那么 Client 需要一个`ca.crt` ，服务器需要 server.crt 和 server.key 。
+
+双向认证，指的是相互校验，Server 需要校验每个 Client ，Client 也需要校验服务器。
+
+    Server 需要 server.key、server.crt、ca.crt 
+    Client 需要 client.key、client.crt、ca.crt 
+
+
+参考1 :[九个问题从入门到熟悉HTTPS](https://juejin.im/post/58c5268a61ff4b005d99652a)
+
+参考2 :[SSL/TLS 双向认证(一) -- SSL/TLS工作原理](https://blog.csdn.net/ustccw/article/details/76691248)
+
+[toTop](#jump)
+
+
+
+参考阅读：
+
+[《Https 单向认证和双向认证》](https://blog.csdn.net/duanbokan/article/details/50847612)
+
+[《网络协议 ping 的工作原理》](https://blog.csdn.net/Maybe_ch/article/details/82598782)
+
+[《HTTP1.0、HTTP1.1 和 HTTP2.0 的区别》](https://www.jianshu.com/p/be29d679cbff)
+
+[《计算机网络常见面试题》](https://segmentfault.com/a/1190000010819141)
+
+[《总结的网络面试题》](https://www.jianshu.com/p/a1f5daf7ada5)
+
+[《面试/笔试第一弹 —— 计算机网络面试问题集锦》](https://blog.csdn.net/justloveyou_/article/details/78303617)
+
+[《通俗大白话来理解 TCP 协议的三次握手和四次挥手》](https://github.com/jawil/blog/issues/14)
+
+[《TCP 数据的传输过程》](https://www.jianshu.com/p/b71ec62b6eb5)
+
+[《搞定计算机网络面试，看这篇就够了（补充版）》](https://juejin.im/post/5b7be0b2e51d4538db34a51e)
