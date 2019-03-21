@@ -18,7 +18,6 @@
 - [Spring生命周期](#spring生命周期)
 - [spring bean初始化销毁过程](#spring-bean初始化销毁过程)
 - [BeanFactory和FactoryBean的区别](#beanfactory和factorybean的区别)
-- [SpringBoot启动过程](#springboot启动过程)
 
 <!-- /TOC -->
 
