@@ -84,7 +84,36 @@ Exception包括受检异常和非受检异常(RuntimeException)
 
 # HTTP GET和POST区别
 GET：是请求资源。安全，幂等（同一个请求多次和一次效果完全相同），可缓存，参数长度有限制（受限于url长度）  
-POST：根据报文主题对指定资源做出处理，不安全，不幂等，不可缓存 
+POST：根据报文主题对指定资源做出处理，不安全，不幂等，不可缓存
+
+POST大小：
+Jetty
+Jetty的默认值为**200k**，我们可以在配置内修改这个默认设置,修改``JETTY_HOME/etc/jetty.xml``，对``maxFormContentSize``重新赋值，-1表示不限制，正数值表示所允许的最大bytes:
+
+```xml
+<Call class="java.lang.System" name="setProperty">    
+            <Arg>org.mortbay.jetty.Request.maxFormContentSize</Arg>    
+            <Arg>-1</Arg>    
+</Call>  
+```
+
+Nginx
+修改nginx目录下``nginx.conf``，在http模块中设置``client_max_body_size``便可，``0``为不设置，可以使用M作为单位：
+
+```xml
+    http {   
+        #......   
+        client_max_body_size 300M;   
+        #......   
+    }   
+```
+
+Tomcat
+
+默认限制为**2MB**. 
+修改默认限制值的方法如下：
+修改tomcat的配置文件``$TOMCAT_HOME$/conf/server.xml``, 
+找到里面的``<Connector>``节点，在该节点中添加``maxPostSize``属性，将该属性值设置成你想要的最大值（单位：``byte``，``0``表示不限制）。 
 
 [toTop](#jump)
 
