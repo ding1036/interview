@@ -606,9 +606,13 @@ date -d "1970-01-01 UTC `echo "$(date +%s)-$(cat /proc/uptime|cut -f 1 -d' ')+12
 ## 集合与泛型
 
 ![](/img/generic1.png)
+
 ![](/img/generic2.png)
+
 ![](/img/generic3.png)
+
 ![](/img/generic4.png)
+
 ![](/img/generic5.png)
 
 补充：Array不支持泛型
