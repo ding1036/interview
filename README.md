@@ -24,6 +24,7 @@
 * [mysql](docs/mysql.md)
 * [oracle](docs/oracle.md)
 * [mybatis](docs/mybatis.md)
+* [分库分表](docs/sharding.md)
 
 ## 中间件
 
