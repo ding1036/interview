@@ -22,6 +22,7 @@
 - [Cookies 和 Session 的区别](#cookies-和-session-的区别)
 - [一次完整的 HTTP 请求所经历的步骤](#一次完整的-http-请求所经历的步骤)
 - [HTTPS](#https)
+- [ip](#ip)
 
 <!-- /TOC -->
 
@@ -382,6 +383,24 @@ HTTPS ，实际就是在 TCP 层与 HTTP 层之间加入了`` SSL/TLS`` 来为�
 参考1 :[九个问题从入门到熟悉HTTPS](https://juejin.im/post/58c5268a61ff4b005d99652a)
 
 参考2 :[SSL/TLS 双向认证(一) -- SSL/TLS工作原理](https://blog.csdn.net/ustccw/article/details/76691248)
+
+[toTop](#jump)
+
+# ip
+
+IP 地址编址方案将IP地址空间划分为 A、B、C、D、E 五类，其中 A、B、C 是基本类，D、E 类作为多播和保留使用，为特殊地址。
+
+每个 IP 地址包括两个标识码（ID），即网络 ID 和主机 ID 。同一个物理网络上的所有主机都使用同一个网络 ID ，网络上的一个主机（包括网络上工作站，服务器和路由器等）有一个主机 ID 与其对应。A~E 类地址的特点如下：
+
+![](/img/ip_address_sort.jpg)
+
+
+    A 类地址：以 0 开头，第一个字节范围：0~127 。
+    B 类地址：以 10 开头，第一个字节范围：128~191 。
+    C 类地址：以 110 开头，第一个字节范围：192~223。
+    D 类地址：以 1110 开头，第一个字节范围：224~239 。
+    E 类地址：以 1111 开头，保留地址。
+
 
 [toTop](#jump)
 

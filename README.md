@@ -25,6 +25,7 @@
 * [oracle](docs/oracle.md)
 * [mybatis](docs/mybatis.md)
 * [分库分表](docs/sharding.md)
+* [常见数据库笔试题](docs/database_questions.md)
 
 ## 中间件
 
@@ -36,7 +37,7 @@
 
 * [分布式](docs/distributed.md)
 
-## 网络
+## 计算机网络
 
 * [网络基础](docs/network.md)
 
