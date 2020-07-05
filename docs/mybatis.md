@@ -2,16 +2,16 @@
 
 <!-- TOC -->
 
-- [mybatis缓存机制](#mybatis缓存机制)
-    - [一级缓存](#一级缓存)
-    - [二级缓存](#二级缓存)
-- [如何获取自动生成的(主)键值](#如何获取自动生成的主键值)
-- [Mybatis都有哪些Executor执行器](#mybatis都有哪些executor执行器)
+- [1. mybatis缓存机制](#1-mybatis缓存机制)
+    - [1.1. 一级缓存](#11-一级缓存)
+    - [1.2. 二级缓存](#12-二级缓存)
+- [2. 如何获取自动生成的(主)键值](#2-如何获取自动生成的主键值)
+- [3. Mybatis都有哪些Executor执行器](#3-mybatis都有哪些executor执行器)
 
 <!-- /TOC -->
 
 
-# mybatis缓存机制
+# 1. mybatis缓存机制
 
 mybatis的缓存分为两级：一级缓存、二级缓存
 
@@ -19,10 +19,10 @@ mybatis的缓存分为两级：一级缓存、二级缓存
 
 * 二级缓存是**mapper级别**的缓存，同一个namespace公用这一个缓存，所以对SqlSession是共享的
 
-## 一级缓存
+## 1.1. 一级缓存
 MyBatis **默认开启了一级缓存**。同一个SqlSession ，多次调用同一个Mapper和同一个方法的同一个参数，只会进行一次数据库查询，然后把数据缓存到缓冲中，以后直接先从缓存中取出数据，不会直接去查数据库。
 
-## 二级缓存
+## 1.2. 二级缓存
 当我们的配置文件配置了cacheEnabled=true时，就会开启二级缓存。不同的sqlsession使用同一个mapper查询是，查询到的数据可能是另一个sqlsession做相同操作留下的缓存。
 
 
@@ -30,7 +30,7 @@ MyBatis **默认开启了一级缓存**。同一个SqlSession ，多次调用同
 
 [toTop](#jump)
 
-# 如何获取自动生成的(主)键值
+# 2. 如何获取自动生成的(主)键值
 
 MySQL 有两种方式，但是自增主键
 方式一较为常用
@@ -87,7 +87,7 @@ CACHE 10;
 
 [toTop](#jump)
 
-# Mybatis都有哪些Executor执行器
+# 3. Mybatis都有哪些Executor执行器
 
 1) ```SimpleExecutor```：每执行一次update或select，就开启一个Statement对象，用完立刻关闭Statement对象。
 
