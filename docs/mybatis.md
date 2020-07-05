@@ -6,6 +6,7 @@
     - [一级缓存](#一级缓存)
     - [二级缓存](#二级缓存)
 - [如何获取自动生成的(主)键值](#如何获取自动生成的主键值)
+- [Mybatis都有哪些Executor执行器](#mybatis都有哪些executor执行器)
 
 <!-- /TOC -->
 
@@ -82,3 +83,29 @@ CACHE 10;
     VALUES (SEQ_ZONE.NEXTVAL, #{name,jdbcType=VARCHAR})
 </insert>
 ```
+
+
+[toTop](#jump)
+
+# Mybatis都有哪些Executor执行器
+
+1) ```SimpleExecutor```：每执行一次update或select，就开启一个Statement对象，用完立刻关闭Statement对象。
+
+ 
+
+2) ```ReuseExecutor```：执行update或select，以sql作为key查找Statement对象，存在就使用，不存在就创建，用完后，不关闭Statement对象，而是放置于Map内，供下一次使用。简言之，就是重复使用Statement对象。
+
+ 
+
+3) ```BatchExecutor```：执行update（没有select，JDBC批处理不支持select），将所有sql都添加到批处理中（addBatch()），等待统一执行（executeBatch()），它缓存了多个Statement对象，每个Statement对象都是addBatch()完毕后，等待逐一执行executeBatch()批处理。与JDBC批处理相同。
+
+ 
+作用范围：Executor的这些特点，都严格限制在```SqlSession```生命周期范围内。
+
+
+默认是```SimplExcutor```，需要配置在创建SqlSession对象的时候指定执行器的类型即可。
+
+
+**Mybatis中如何指定使用哪一种Executor执行器？**
+
+在Mybatis配置文件中，可以指定默认的```ExecutorType```执行器类型，也可以手动给```DefaultSqlSessionFactory```的创建```SqlSession```的方法传递```ExecutorType```类型参数。
