@@ -108,7 +108,7 @@ COUNT(*): 16049
 一个大查询如果一次性执行的话，可能一次锁住很多数据、占满整个事务日志、耗尽系统资源、阻塞很多小的但重要的查询。
 例子
 ```sql
-DELEFT FROM messages WHERE create < DATE_SUB(NOW(), INTERVAL 3 MONTH);
+DELETE FROM messages WHERE create < DATE_SUB(NOW(), INTERVAL 3 MONTH);
 ```
 改为
 ```sql
