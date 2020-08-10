@@ -7,7 +7,7 @@
 - [异常](#异常)
 - [HTTP GET和POST区别](#http-get和post区别)
 - [Java中private、protected、public和default的区别](#java中privateprotectedpublic和default的区别)
-- [sleep wait区别](#sleep-wait区别)
+- [sleep wait yield区别](#sleep-wait-yield区别)
 - [java一些常用包](#java一些常用包)
 - [String 的intern()方法](#string-的intern方法)
 - [分派](#分派)
@@ -120,10 +120,15 @@ Tomcat
 # Java中private、protected、public和default的区别
 ![](/img/javaclass_type.png)  
 
-# sleep wait区别
+# sleep wait yield区别
 sleep：Thread类的方法，必须带一个时间参数。会让当前线程休眠进入阻塞状态并释放CPU，提供其他线程运行的机会且不考虑优先级，**但如果有同步锁则sleep不会释放锁即其他线程无法获得同步锁**
 
 wait：Object类的方法，**必须放在循环体和同步代码块中，执行该方法的线程会释放锁**，进入线程等待池中等待被再次唤醒(notify随机唤醒，notifyAll全部唤醒，线程结束自动唤醒)即放入锁池中竞争同步锁
+
+yield：  sleep 方法类似，也不会释放“锁标志”，区别在于：
+它没有参数，即 **yield 方法只是使当前线程重新回到可执行状态**，所以执行yield 的线程有可能在进入到可执行状态后马上又被执行。
+另外 yield 方法只能使同优先级或者高优先级的线程得到执行机会，这也和 sleep 方法不同。
+
 
 [toTop](#jump)
 

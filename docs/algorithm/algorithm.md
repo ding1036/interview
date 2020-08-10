@@ -7,4 +7,3 @@
 * [字符串查找](find_string.md)
 * [删除排序数组中的重复数字](remove_duplicates.md)
 * [爬楼梯](climb_stairs.md)
-climbStairs
