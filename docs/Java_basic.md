@@ -2,6 +2,9 @@
 <!-- TOC -->
 
 - [8个基本类型](#8个基本类型)
+- [== 和 equals 的区别是什么？](#-和-equals-的区别是什么)
+- [final 在 java 中有什么作用？](#final-在-java-中有什么作用)
+- [接口和抽象类的区别是什么？](#接口和抽象类的区别是什么)
 - [Object,String类的方法](#objectstring类的方法)
 - [static](#static)
 - [异常](#异常)
@@ -61,6 +64,131 @@ double long 8字节
 
 [toTop](#jump)
 
+# == 和 equals 的区别是什么？
+
+== 解读
+
+对于基本类型和引用类型 == 的作用效果是不同的，如下所示：
+
+    基本类型：比较的是值是否相同；
+    引用类型：比较的是引用是否相同；
+
+代码示例：
+
+```java
+String x = "string";
+String y = "string";
+String z = new String("string");
+System.out.println(x==y); // true
+System.out.println(x==z); // false
+System.out.println(x.equals(y)); // true
+System.out.println(x.equals(z)); // true
+```
+
+代码解读：因为 x 和 y 指向的是同一个引用，所以 == 也是 true，而 new String()方法则重写开辟了内存空间，所以 == 结果为 false，而 equals 比较的一直是值，所以结果都为 true。
+
+equals 解读
+
+equals 本质上就是 ==，只不过 String 和 Integer 等重写了 equals 方法，把它变成了值比较。看下面的代码就明白了。
+
+首先来看默认情况下 equals 比较一个有相同值的对象，代码如下：
+
+```java
+class Cat {
+    public Cat(String name) {
+        this.name = name;
+    }
+
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+
+Cat c1 = new Cat("王磊");
+Cat c2 = new Cat("王磊");
+System.out.println(c1.equals(c2)); // false
+```
+
+输出结果出乎我们的意料，竟然是 false？这是怎么回事，看了 equals 源码就知道了，源码如下：
+
+```java
+public boolean equals(Object obj) {
+     return (this == obj);
+ }
+```
+
+原来 equals 本质上就是 ==。
+
+那问题来了，两个相同值的 String 对象，为什么返回的是 true？代码如下：
+
+```java
+String s1 = new String("老王");
+String s2 = new String("老王");
+System.out.println(s1.equals(s2)); // true
+```
+
+同样的，当我们进入 String 的 equals 方法，找到了答案，代码如下：
+
+```java
+public boolean equals(Object anObject) {
+    if (this == anObject) {
+        return true;
+    }
+    if (anObject instanceof String) {
+        String anotherString = (String)anObject;
+        int n = value.length;
+        if (n == anotherString.value.length) {
+            char v1[] = value;
+            char v2[] = anotherString.value;
+            int i = 0;
+            while (n-- != 0) {
+                if (v1[i] != v2[i])
+                    return false;
+                i++;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+```
+
+原来是 String 重写了 Object 的 equals 方法，把引用比较改成了值比较。
+
+**总结** ：== 对于基本类型来说是值比较，对于引用类型来说是比较的是引用；而 equals 默认情况下是引用比较，只是很多类重新了 equals 方法，比如 String、Integer 等把它变成了值比较，所以一般情况下 equals 比较的是值是否相等。
+
+[toTop](#jump)
+
+# final 在 java 中有什么作用？
+
+
+1) final 修饰的类叫最终类，该类不能被继承。
+2) final 修饰的方法不能被重写。
+3) final 修饰的变量叫常量，常量必须初始化，初始化之后值就不能被修改。
+
+[toTop](#jump)
+
+# 接口和抽象类的区别是什么？
+
+1) 接口的方法默认是 public，所有方法在接口中不能有实现(Java 8 开始接口方法可以有默认实现），而抽象类可以有非抽象的方法。
+
+2) 接口中除了static、final变量，不能有其他变量，而抽象类中则不一定。
+
+3) 一个类可以实现多个接口，但只能实现一个抽象类。接口自己本身可以通过extends关键字扩展多个接口。
+
+4) 接口方法默认修饰符是public，抽象方法可以有public、protected和default这些修饰符（抽象方法就是为了被重写所以不能使用private关键字修饰！）。
+
+5) 从设计层面来说，抽象是对类的抽象，是一种模板设计，而接口是对行为的抽象，是一种行为的规范。
+
+备注：在JDK8中，接口也可以定义静态方法，可以直接用接口名调用。实现类和实现是不可以调用的。如果同时实现两个接口，接口中定义了一样的默认方法，则必须重写，不然会报错。
+
+[toTop](#jump)
 
 # Object,String类的方法
 Object:getClass(),hashCode(),equals(),toString(),wait(),  notify(),notifyAll()  
