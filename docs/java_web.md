@@ -1,5 +1,14 @@
 <a id = "jump">[首页](/README.md)</a>
 
+<!-- TOC -->
+
+- [jsp 有哪些内置对象？作用分别是什么？](#jsp-有哪些内置对象作用分别是什么)
+- [jsp 的 4 种作用域？](#jsp-的-4-种作用域)
+- [session 和 cookie 有什么区别？](#session-和-cookie-有什么区别)
+- [如果客户端禁止 cookie 能实现 session 还能用吗？](#如果客户端禁止-cookie-能实现-session-还能用吗)
+
+<!-- /TOC -->
+
 # jsp 有哪些内置对象？作用分别是什么？
 
 JSP有9个内置对象：

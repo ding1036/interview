@@ -53,7 +53,7 @@
 
 ## 安全
 
-* [java安全](docs/save.md)
+* [java安全](docs/java_safe.md)
 
 * [加密算法](docs/encryption.md)
 
