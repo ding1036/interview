@@ -410,6 +410,9 @@ netstat -anp 显示系统端口使用情况
 [toTop](#jump)
 
 # 运行文件输出日志不直接打印
+
 ```shell
 nohup java -jar babyshark-0.0.1-SNAPSHOT.jar > log.file 2>&1 & 
 ```
+
+[toTop](#jump)
