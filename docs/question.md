@@ -12,3 +12,13 @@
 
 
 [toTop](#jump)
+
+# DB2 
+## db2 合并字符
+
+```sql
+SELECT [分组的字段],LISTAGG([需要聚合的字段名], ',') WITHIN GROUP(ORDER BY [排序的字段名]) AS employees
+FROM [表名] GROUP BY [分组的字段名] ;                  --注意：需要DB2 9.7以后的版本才支持
+```
+
+[toTop](#jump)
