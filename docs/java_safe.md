@@ -6,6 +6,7 @@
 - [如何避免 sql 注入？](#如何避免-sql-注入)
 - [什么是 XSS 攻击，如何避免？](#什么是-xss-攻击如何避免)
 - [什么是 CSRF 攻击，如何避免？](#什么是-csrf-攻击如何避免)
+- [缺少X-Frame-Options头部信息](#缺少x-frame-options头部信息)
 
 <!-- /TOC -->
 
@@ -53,5 +54,97 @@ CSRF（Cross-site request forgery）也被称为 one-click attack或者 session 
 4. 在HTTP 头中自定义属性并验证
 
     这种方法也是使用 token 并进行验证，和上一种方法不同的是，这里并不是把 token 以参数的形式置于 HTTP 请求之中，而是把它放到 HTTP 头中自定义的属性里。通过 XMLHttpRequest 这个类，可以一次性给所有该类请求加上 csrftoken 这个 HTTP 头属性，并把 token 值放入其中。这样解决了上种方法在请求中加入 token 的不便，同时，通过 XMLHttpRequest 请求的地址不会被记录到浏览器的地址栏，也不用担心 token 会透过 Referer 泄露到其他网站中去。
+
+[toTop](#jump)
+
+#  缺少X-Frame-Options头部信息
+Apache tomcat 7.0.90 和 tomcat 8以上都有HttpHeaderSecurityFilter
+
+可以在tomcat下的conf里的web.xml中增加以下过滤器
+
+```xml
+<filter>
+  <filter-name>httpHeaderSecurity</filter-name>
+  <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+  <init-param>
+    <param-name>antiClickJackingEnabled</param-name>
+    <param-value>true</param-value>
+  </init-param>
+  <init-param>
+    <param-name>antiClickJackingOption</param-name>
+    <param-value>SAMEORIGIN</param-value>
+  </init-param>
+  <async-supported>true</async-supported>
+</filter>
+<filter-mapping>
+  <filter-name>httpHeaderSecurity</filter-name>
+  <url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+ 如果没有HttpHeaderSecurityFilter，需要自己写过滤器，添加如下代码，自己在项目中配置拦截。
+
+ ```java
+HttpServletResponse response = (HttpServletResponse) sResponse;
+response.addHeader("x-frame-options","SAMEORIGIN"); 
+ ```
+
+ X-Frame-Options 有三个值:
+
+**DENY**
+
+表示该页面不允许在 frame 中展示，即便是在相同域名的页面中嵌套也不允许。
+
+**SAMEORIGIN**
+
+表示该页面可以在相同域名页面的 frame 中展示。
+
+**ALLOW-FROM**
+
+表示该页面可以在指定来源的 frame 中展示。
+
+换一句话说，如果设置为 DENY，不光在别人的网站 frame 嵌入时会无法加载，在同域名页面中同样会无法加载。
+
+另一方面，如果设置为 SAMEORIGIN，那么页面就可以在同域名页面的 frame 中嵌套。
+
+
+* Apache配置
+配置 Apache 在所有页面上发送 X-Frame-Options 响应头，需要把下面这行添加到 'site' 的配置中:
+1、打开httpd.conf 找到LoadModule headers_module modules/mod_headers.so模块，去掉前面的# 号 启用该模块
+2、在此处加上 ``Header always append X-Frame-Options SAMEORIGIN``
+
+```xml
+<IfModule headers_module>
+RequestHeader unset DNT env=bad_DNT
+Header always append X-Frame-Options SAMEORIGIN
+</IfModule>
+```
+重启完就OK。
+
+* Nginx
+配置 nginx 发送 X-Frame-Options 响应头，把下面这行添加到 'http', 'server' 或者 'location' 的配置中:
+
+```
+add_header X-Frame-Options SAMEORIGIN;
+```
+
+* IIS
+配置 IIS 发送 X-Frame-Options 响应头，添加下面的配置到 Web.config 文件中
+
+```xml
+
+<system.webServer>
+  ...
+​
+  <httpProtocol>
+    <customHeaders>
+      <add name="X-Frame-Options" value="SAMEORIGIN" />
+    </customHeaders>
+  </httpProtocol>
+​
+  ...
+</system.webServer>
+```
+
 
 [toTop](#jump)
