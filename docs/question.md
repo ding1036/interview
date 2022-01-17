@@ -36,3 +36,16 @@ ERROR RetryUtil - Exception when calling callable,异常Msg:Code:[DBUtilErrorCod
 首先检查数据库的连接地址、账号、密码等，如果都正确则参考以下方法
 
 因为json配置文件中的writer中的 jdbcUrl 不能使用[]中括号括起来，即表示只能有一个写入的库。
+
+[toTop](#jump)
+
+# Failed to connect to github.com port 443:connection timed out
+
+取消全局代理：
+```shell
+git config --global --unset http.proxy
+
+git config --global --unset https.proxy
+```
+
+[toTop](#jump)
