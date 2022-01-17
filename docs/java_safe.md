@@ -7,6 +7,7 @@
 - [什么是 XSS 攻击，如何避免？](#什么是-xss-攻击如何避免)
 - [什么是 CSRF 攻击，如何避免？](#什么是-csrf-攻击如何避免)
 - [缺少X-Frame-Options头部信息](#缺少x-frame-options头部信息)
+- [Spring Boot应对Log4j2注入漏洞](#spring-boot应对log4j2注入漏洞)
 
 <!-- /TOC -->
 
@@ -144,6 +145,76 @@ add_header X-Frame-Options SAMEORIGIN;
 ​
   ...
 </system.webServer>
+```
+
+
+[toTop](#jump)
+
+
+# Spring Boot应对Log4j2注入漏洞
+默认配置不受影响
+
+Spring Boot默认日志组件是``logback``，开发者通过日志门面``Slf4j``进行集成对接。Spring Boot 用户只有在将默认日志系统切换到 Log4J2 时才会受到此漏洞的影响。Spring Boot包含的``log4j-to-slf4j``
+和``log4j-api``
+、``spring-boot-starter-logging``
+不能独立利用。只有``log4j-core``
+在日志消息中使用和包含用户输入的应用程序容易受到攻击。
+
+也就是说Spring Boot现在包含Log4J2的依赖只要你不启用是不会触发漏洞的。
+下版本更新补丁
+
+Spring Boot将在2021 年 12 月 23 日后发布的 2.5.8
+和 2.6.2
+版本将采用打了补丁的Log4J v2.15.0，但由于这是一个极其严重的漏洞，一定要覆盖我们的依赖项管理并尽快升级您的 Log4J2 依赖项。
+* Maven用户
+
+对于 Maven 用户，您可以通过覆盖自己项目中pom.xml
+的版本号配置属性来修改该依赖的版本号。提升Log4J2到安全版本只需要：
+
+```xml
+<properties>
+    <log4j2.version>2.15.0</log4j2.version>
+</properties>
+```
+
+然后使用
+```shell
+./mvnw dependency:list | grep log4j
+```
+命令运行以检查版本是否为 2.15.0
+
+* Gradle用户
+
+    对于大多数用户来说，设置``log4j2.version``
+    属性就足够了：
+
+```xml
+ext['log4j2.version'] = '2.15.0'
+```
+
+如果你的Gradle并没有直接对Spring Boot进行依赖管理，你可以添加Log4J BOM
+依赖项:
+
+```xml
+implementation(platform("org.apache.logging.log4j:log4j-bom:2.15.0"))
+```
+
+万金油”的方法是声明一个Gradle的resolutionStrategy
+
+```xml
+configurations.all {
+ resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+  if (details.requested.group == 'org.apache.logging.log4j') {
+   details.useVersion '2.15.0'
+  }
+ }
+}
+```
+
+上面三种方法无论你使用哪种，安全起见都需要使用下面的命令进行检查确认：
+
+```shell
+./gradlew dependencyInsight --dependency log4j-core
 ```
 
 
